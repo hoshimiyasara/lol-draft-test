@@ -2464,21 +2464,21 @@
       }
 
       // ドラフト完了時に BAN/PICK を記録
-      async function savePickBanStats(actionsObj, seq) {
-        if (!db) return;
-        for (const [i, s] of seq.entries()) {
-          const cid = actionsObj[i];
-          if (!cid) continue;
-          const key = s.a === 'ban' ? 'bans' : 'picks';
-          const r = ref(db, `stats/champs/${cid}/${key}`);
-          const cur = (await get(r)).val() || 0;
-          await set(r, cur + 1);
-        }
-        const metaRef = ref(db, 'stats/meta/totalDrafts');
-        const curTotal = (await get(metaRef)).val() || 0;
-        await set(metaRef, curTotal + 1);
-        totalDrafts = curTotal + 1;
-      }
+async function savePickBanStats(actionsObj, seq){
+  if(!db) return;
+  for(const [i, s] of seq.entries()){
+    const cid = actionsObj[i];
+    if(!cid) continue;
+    const key = s.a === 'ban' ? 'bans' : 'picks';
+    const r = ref(db,`stats/champs/${cid}/${key}`);
+    const cur = (await get(r)).val() || 0;
+    await set(r, cur + 1);
+  }
+  const metaRef = ref(db,'stats/meta/totalDrafts');
+  const curTotal = (await get(metaRef)).val() || 0;
+  await set(metaRef, curTotal + 1);
+  totalDrafts = curTotal + 1;
+}
       // インクリメント形式に変更
       const champUpdates = {};
       seq.forEach((s, i) => {
