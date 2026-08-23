@@ -1511,89 +1511,223 @@
     }
 
     /* ── チャンピオン統計オーバーレイ ── */
-    .pick-stats-overlay {
+        .pick-stats-overlay {
       position: absolute;
-      inset: 0;
+      top: 0;
+      bottom: 0;
+
+      /* 横からスライドするための幅 */
+      width: 100%;
+
       z-index: 20;
+
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: rgba(255, 255, 255, 0);
-      animation: stats-in .35s ease-out forwards;
+      justify-content: flex-start;
+      align-items: stretch;
+
+      background: #ffffff;
+      color: #111;
+
       pointer-events: none;
+
+      /* 初期状態：Blueは左から、Redは右から */
+      transform: translateX(-100%);
+
+      animation:
+        stats-slide-in-blue .8s cubic-bezier(.16, 1, .3, 1) forwards;
+
+      overflow: hidden;
     }
 
-    @keyframes stats-in {
-      0% {
-        background: rgba(255, 255, 255, .85);
-      }
 
-      40% {
-        background: rgba(255, 255, 255, .92);
+    /* ─────────────────────────────────────
+   Blue Side
+   左 → 右
+   ───────────────────────────────────── */
+
+    .blue-tp .pick-stats-overlay {
+      left: 0;
+      right: auto;
+
+      transform: translateX(-100%);
+
+      animation:
+        stats-slide-in-blue .8s cubic-bezier(.16, 1, .3, 1) forwards;
+    }
+
+
+    /* ─────────────────────────────────────
+   Red Side
+   右 → 左
+   ───────────────────────────────────── */
+
+    .red-tp .pick-stats-overlay {
+      right: 0;
+      left: auto;
+
+      transform: translateX(100%);
+
+      animation:
+        stats-slide-in-red .8s cubic-bezier(.16, 1, .3, 1) forwards;
+    }
+
+
+    /* Blue：左から入る */
+    @keyframes stats-slide-in-blue {
+      0% {
+        transform: translateX(-100%);
       }
 
       100% {
-        background: rgba(10, 12, 18, .82);
+        transform: translateX(0);
       }
     }
+
+
+    /* Red：右から入る */
+    @keyframes stats-slide-in-red {
+      0% {
+        transform: translateX(100%);
+      }
+
+      100% {
+        transform: translateX(0);
+      }
+    }
+
+
+    /* ─────────────────────────────────────
+   フェードアウトではなく
+   入ってきた方向へ戻す
+   ───────────────────────────────────── */
 
     .pick-stats-overlay.out {
-      animation: stats-out .4s ease-in forwards;
+      animation-duration: .35s;
+      animation-timing-function: cubic-bezier(.55, .08, .68, .53);
     }
 
-    @keyframes stats-out {
+    .blue-tp .pick-stats-overlay.out {
+      animation-name: stats-slide-out-blue;
+    }
+
+    .red-tp .pick-stats-overlay.out {
+      animation-name: stats-slide-out-red;
+    }
+
+
+    @keyframes stats-slide-out-blue {
       0% {
-        background: rgba(10, 12, 18, .82);
-        opacity: 1;
+        transform: translateX(0);
       }
 
       100% {
-        background: rgba(10, 12, 18, 0);
-        opacity: 0;
+        transform: translateX(-100%);
       }
     }
 
-    .pso-name {
-      font-size: .58rem;
-      font-weight: 700;
-      color: rgba(255, 255, 255, .9);
-      letter-spacing: 1px;
-      margin-bottom: 5px;
-      text-align: center;
-      padding: 0 4px;
+
+    @keyframes stats-slide-out-red {
+      0% {
+        transform: translateX(0);
+      }
+
+      100% {
+        transform: translateX(100%);
+      }
     }
+
+
+    /* ═══════════════════════════════════════════════════
+   チャンピオン名
+   ═══════════════════════════════════════════════════ */
+
+    .pso-name {
+      position: relative;
+
+      padding: 14px 12px 10px;
+
+      font-size: 1.2rem;
+      font-weight: 800;
+
+      color: #111;
+
+      letter-spacing: 1.5px;
+      text-align: left;
+
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+
+      border-bottom: 1px solid #e5e5e5;
+    }
+
+
+    /* ═══════════════════════════════════════════════════
+   統計を縦に並べる
+   ═══════════════════════════════════════════════════ */
 
     .pso-row {
       display: flex;
-      gap: 6px;
+      flex-direction: column;
+
+      width: 100%;
+      padding: 8px 12px 0;
+
+      gap: 0;
     }
+
 
     .pso-stat {
       display: flex;
       flex-direction: column;
-      align-items: center;
+
+      align-items: flex-start;
+
+      padding: 8px 0 10px;
+
       gap: 1px;
     }
 
+
+    /* 数値 */
     .pso-val {
-      font-size: 1rem;
+      order: 2;
+
+      font-size: 1.7rem;
       font-weight: 800;
-      color: var(--gold);
+
+      line-height: 1;
+
+      color: #111;
+
+      letter-spacing: .5px;
     }
 
+
+    /* PICK% / BAN% / WIN% */
     .pso-lbl {
-      font-size: .44rem;
-      color: rgba(255, 255, 255, .6);
-      letter-spacing: 1px;
+      order: 1;
+
+      font-size: .75rem;
+      font-weight: 700;
+
+      color: #777;
+
+      letter-spacing: 1.5px;
+
       text-transform: uppercase;
     }
 
+
+    /* 区切り線 */
     .pso-sep {
-      width: 1px;
-      background: rgba(255, 255, 255, .2);
-      align-self: stretch;
-      margin: 2px 0;
+      width: 100%;
+      height: 1px;
+
+      background: #e5e5e5;
+
+      margin: 0;
     }
 
     /* ── タイムアップ モーダル ── */
