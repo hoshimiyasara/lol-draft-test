@@ -2350,6 +2350,7 @@
       let localMode = 'bo1';
       let localDraft = 'tournament';
       let seriesDone = false;
+      let winnerSelected = false;
 
 
 
@@ -2950,14 +2951,20 @@
         }
 
         if (sdone) {
-          // シリーズ終了
-          await update(ref(db, `rooms/${roomId}`), {scores: newScores, seriesDone: true, fearlessUsed: newFU});
+          await update(ref(db, `rooms/${roomId}`), {
+            scores: newScores,
+            seriesDone: true,
+            winnerSelected: true,
+            sideSelectPending: false,
+            fearlessUsed: newFU
+          });
         } else {
           // 負けたチームにサイド選択を促す（done 状態のままサイド選択待ち）
           const loserTeam = team === 'blue' ? 'red' : 'blue';
           await update(ref(db, `rooms/${roomId}`), {
             scores: newScores,
             sideSelectPending: true,
+            winnerSelected: true,
             loser: loserTeam,
             fearlessUsed: newFU,
           });
@@ -3090,8 +3097,8 @@
       window.goNew = async () => {
 
         // BO3 / BO5の場合
-        // 勝敗がまだ選択されていなければ進ませない
-        if (isBo() && !seriesDone) {
+        // 今のゲームの勝敗を選択していなければ進ませない
+        if (isBo() && !winnerSelected) {
           toast('先に勝敗を選択してください');
           return;
         }
@@ -3119,7 +3126,6 @@
 
         location.href = `?room=${nextId}`;
       };
-
       function loadConfig() {try {return JSON.parse(localStorage.getItem('lol-fb-cfg') || 'null');} catch {return null;} }
       window.saveFirebaseConfig = () => {
         const v = k => $(k).value.trim();
@@ -3232,6 +3238,7 @@
           seriesScores = data.scores || {blue: 0, red: 0};
           fearlessUsed = data.fearlessUsed || {blue: [], red: []};
           seriesDone = data.seriesDone || false;
+          winnerSelected = data.winnerSelected || false;
           // BGMインデックス同期: bgmIndexが来たらまだ再生していなければ再生
           if (typeof data.bgmIndex === 'number') {
             if (bgmNodes.length === 0 && actx && !MUTED.banBgm) {
