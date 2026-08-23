@@ -1,0 +1,3599 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LoL Draft Tool</title>
+  <meta property="og:title" content="LoL Draft Tool">
+  <meta property="og:description" content="League of Legends 5v5 リアルタイムドラフトツール。トーナメント・フィアレスドラフト対応。">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Jinx_0.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="LoL Draft Tool">
+  <meta name="twitter:description" content="League of Legends 5v5 リアルタイムドラフトツール">
+  <meta name="twitter:image" content="https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Jinx_0.jpg">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #0e0f12;
+      --bg1: #14161a;
+      --bg2: #1c1e24;
+      --bg3: #22252d;
+      --bg4: #2a2d38;
+      --blue: #1e8aff;
+      --blue-g: rgba(30, 138, 255, .15);
+      --red: #e84040;
+      --red-g: rgba(232, 64, 64, .15);
+      --gold: #c89b3c;
+      --gold2: #9a7528;
+      --text: #5a6a80;
+      --text2: #8a9ab0;
+      --text3: #c8d8e8;
+      --bdr: #1c1e24;
+      --bdr2: #2e3240;
+    }
+
+    html,
+    body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text2);
+      font-family: 'Segoe UI', 'Hiragino Kaku Gothic ProN', system-ui, sans-serif;
+      font-size: clamp(10px, 1.3vh, 14px);
+      overflow: hidden;
+    }
+
+    .scr {
+      display: none;
+      position: fixed;
+      inset: 0;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      background: var(--bg);
+    }
+
+    .scr.on {
+      display: flex;
+    }
+
+    #s-load {
+      gap: 14px;
+    }
+
+    .spin {
+      width: 38px;
+      height: 38px;
+      border: 3px solid var(--bdr2);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .ld-t {
+      font-size: .7rem;
+      color: var(--text);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      animation: pulse 1.4s ease infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: .35
+      }
+
+      50% {
+        opacity: 1
+      }
+    }
+
+    #s-setup {
+      gap: 20px;
+      padding: 24px;
+    }
+
+    .setup-card {
+      background: var(--bg1);
+      border: 1px solid var(--bdr2);
+      border-radius: 4px;
+      padding: 28px;
+      width: 100%;
+      max-width: 520px;
+      position: relative;
+    }
+
+    .setup-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+
+    .setup-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--gold);
+      letter-spacing: 2px;
+      margin-bottom: 4px;
+    }
+
+    .setup-sub {
+      font-size: .75rem;
+      color: var(--text);
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      background: var(--bg2);
+      border-radius: 3px;
+      padding: 12px;
+    }
+
+    .step-num {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      background: var(--gold2);
+      color: #0a0a0a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .7rem;
+      font-weight: 800;
+    }
+
+    .step-txt {
+      font-size: .78rem;
+      line-height: 1.7;
+      color: var(--text2);
+    }
+
+    .step-txt a {
+      color: var(--blue);
+    }
+
+    .step-txt code {
+      background: var(--bg3);
+      border: 1px solid var(--bdr2);
+      border-radius: 2px;
+      padding: 1px 6px;
+      font-family: 'Consolas', monospace;
+      font-size: .75rem;
+      color: var(--text3);
+    }
+
+    .inp {
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--bg2);
+      border: 1px solid var(--bdr2);
+      border-radius: 3px;
+      color: var(--text3);
+      font-family: 'Consolas', monospace;
+      font-size: .8rem;
+      outline: none;
+      transition: border-color .15s;
+      margin-bottom: 8px;
+    }
+
+    .inp:focus {
+      border-color: var(--blue);
+    }
+
+    .inp::placeholder {
+      color: var(--text);
+      font-family: inherit;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 3px;
+      font-family: inherit;
+      font-size: .8rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all .15s;
+      white-space: nowrap;
+    }
+
+    .btn-gold {
+      background: var(--gold);
+      color: #0a0a0a;
+      width: 100%;
+      margin-top: 4px;
+    }
+
+    .btn-gold:hover {
+      background: #dab050;
+    }
+
+    .btn-blue {
+      background: var(--blue);
+      color: #fff;
+    }
+
+    .btn-blue:hover {
+      background: #3a9aff;
+    }
+
+    #s-lobby {
+      gap: 24px;
+    }
+
+    .logo {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--gold);
+      letter-spacing: 3px;
+      text-align: center;
+    }
+
+    .logo small {
+      display: block;
+      font-size: .6rem;
+      color: var(--text);
+      letter-spacing: 4px;
+      font-weight: 400;
+      margin-top: 4px;
+    }
+
+    .card {
+      background: var(--bg1);
+      border: 1px solid var(--bdr2);
+      border-radius: 4px;
+      padding: 22px;
+      width: 360px;
+    }
+
+    .card-lbl {
+      font-size: .65rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    .row-flex {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .row-flex .inp {
+      flex: 1;
+      margin: 0;
+      font-size: .9rem;
+      font-family: inherit;
+      letter-spacing: 2px;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text);
+      font-size: .65rem;
+      letter-spacing: 2px;
+      margin: 14px 0 10px;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--bdr2);
+    }
+
+    #s-role {
+      gap: 20px;
+    }
+
+    .room-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg2);
+      border: 1px solid var(--bdr2);
+      border-radius: 3px;
+      padding: 8px 16px;
+    }
+
+    .room-badge .code {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--gold);
+      letter-spacing: 4px;
+    }
+
+    .copy-btn {
+      padding: 3px 10px;
+      background: transparent;
+      border: 1px solid var(--bdr2);
+      border-radius: 2px;
+      color: var(--text);
+      font-size: .7rem;
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .copy-btn:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    .role-grid {
+      display: flex;
+      gap: 10px;
+    }
+
+    .rcard {
+      flex: 1;
+      background: var(--bg2);
+      border: 2px solid var(--bdr2);
+      border-radius: 4px;
+      padding: 22px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all .2s;
+      min-width: 130px;
+    }
+
+    .rcard .ri {
+      font-size: 1.8rem;
+      margin-bottom: 8px;
+    }
+
+    .rcard .rn {
+      font-size: .82rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .rcard .rs {
+      font-size: .67rem;
+      color: var(--text);
+      margin-top: 4px;
+    }
+
+    .rcard.blue:hover:not(.taken) {
+      border-color: var(--blue);
+      background: var(--blue-g);
+    }
+
+    .rcard.blue .rn {
+      color: var(--blue);
+    }
+
+    .rcard.red:hover:not(.taken) {
+      border-color: var(--red);
+      background: var(--red-g);
+    }
+
+    .rcard.red .rn {
+      color: var(--red);
+    }
+
+    .rcard.spec:hover {
+      border-color: var(--gold);
+    }
+
+    .rcard.spec .rn {
+      color: var(--gold);
+    }
+
+    .rcard.taken {
+      opacity: .3;
+      cursor: not-allowed;
+    }
+
+    /* ══════════════ DRAFT SCREEN ══════════════ */
+    #s-draft {
+      display: none;
+      flex-direction: column;
+      position: fixed;
+      inset: 0;
+    }
+
+    #s-draft.on {
+      display: flex;
+    }
+
+    /* Header */
+    .dh {
+      height: 56px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: stretch;
+      background: var(--bg1);
+      border-bottom: 1px solid var(--bdr2);
+      position: relative;
+    }
+
+    .dh-team {
+      width: 175px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 13px;
+    }
+
+    .dh-team.blue {
+      border-left: 4px solid var(--blue);
+    }
+
+    .dh-team.red {
+      border-right: 4px solid var(--red);
+      text-align: right;
+    }
+
+    .dh-team-name {
+      font-size: 1.2rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .dh-team.blue .dh-team-name {
+      color: var(--blue);
+    }
+
+    .dh-team.red .dh-team-name {
+      color: var(--red);
+    }
+
+    .dh-team-side {
+      font-size: .6rem;
+      color: var(--text);
+      margin-top: 2px;
+    }
+
+    .dh-center {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .dh-phase {
+      font-size: .56rem;
+      color: var(--text);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+
+    .dh-status {
+      font-size: .86rem;
+      font-weight: 600;
+      color: var(--text3);
+    }
+
+    .dh-status.bt {
+      color: var(--blue);
+    }
+
+    .dh-status.rt {
+      color: var(--red);
+    }
+
+    /* bans-strip サイドグラデーション */
+    .bans-strip {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bans-side-glow {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 220px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .4s;
+    }
+
+    .bans-side-glow.blue {
+      left: 0;
+      background: linear-gradient(90deg, rgba(30, 138, 255, .18) 0%, transparent 100%);
+    }
+
+    .bans-side-glow.red {
+      right: 0;
+      background: linear-gradient(270deg, rgba(232, 64, 64, .18) 0%, transparent 100%);
+    }
+
+    .bans-side-glow.on {
+      opacity: 1;
+    }
+
+    /* Upper: filter + grid */
+    .upper-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    .cw-row {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      min-height: 0;
+      min-width: 0;
+    }
+
+    .fb {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 5px 8px;
+      background: var(--bg1);
+      border-bottom: 1px solid var(--bdr2);
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+
+    .rtab {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      padding: 4px 9px;
+      background: transparent;
+      border: 1px solid var(--bdr2);
+      border-radius: 3px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: .67rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all .13s;
+      user-select: none;
+    }
+
+    .rtab:hover {
+      background: var(--bg3);
+      color: var(--text3);
+    }
+
+    .rtab.on {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #fff;
+    }
+
+    .rtab.all.on {
+      background: var(--bg4);
+      border-color: var(--text2);
+      color: var(--text3);
+    }
+
+    .sb {
+      margin-left: 0;
+      padding: 4px 10px;
+      background: var(--bg3);
+      border: 1px solid var(--bdr2);
+      border-radius: 3px;
+      color: var(--text3);
+      font-family: inherit;
+      font-size: .82rem;
+      outline: none;
+      width: 150px;
+      transition: border-color .14s;
+    }
+
+    .sb:focus {
+      border-color: var(--blue);
+    }
+
+    .sb::placeholder {
+      color: var(--text);
+    }
+
+    /* ── 小さくしたグリッド ── */
+    .cw {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .cw::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .cw::-webkit-scrollbar-thumb {
+      background: var(--bdr2);
+      border-radius: 2px;
+    }
+
+    .cg {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+      gap: 6px;
+      width: 100%;
+      max-width: 860px;
+      padding: 0 4px;
+    }
+
+    .cc {
+      position: relative;
+      cursor: pointer;
+      border: 2px solid transparent;
+      border-radius: 2px;
+      overflow: hidden;
+      background: var(--bg3);
+      transition: transform .12s, border-color .12s;
+    }
+
+    .cc:hover:not(.used):not(.nc) {
+      transform: scale(1.08);
+      z-index: 2;
+      border-color: var(--gold);
+    }
+
+    .cc.sel {
+      border-color: #fff !important;
+      transform: scale(1.08);
+      z-index: 2;
+    }
+
+    .cc.used {
+      opacity: .15;
+      cursor: not-allowed;
+      filter: grayscale(1);
+    }
+
+    .cc.nc {
+      cursor: not-allowed;
+    }
+
+    .cc img {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      display: block;
+    }
+
+    .cc .cn {
+      text-align: center;
+      font-size: .70rem;
+      color: var(--text2);
+      padding: 1px 2px 3px;
+      background: var(--bg2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* BAN ストリップ */
+    .bans-strip {
+      height: 80px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      background: var(--bg1);
+      border-top: 1px solid var(--bdr2);
+      padding: 0 8px;
+      gap: 4px;
+    }
+
+    .bans-side {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    #br-blue {
+      flex-direction: row-reverse;
+    }
+
+    .bans-lbl {
+      flex: 1;
+      text-align: center;
+      font-size: .56rem;
+      color: var(--text);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+
+    .ban-sl {
+      width: 62px;
+      height: 62px;
+      border-radius: 2px;
+      overflow: hidden;
+      border: 2px solid var(--bdr2);
+      background: var(--bg2);
+      position: relative;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ban-sl img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .ban-sl .be {
+      color: var(--bdr2);
+      font-size: 1rem;
+    }
+
+    .ban-sl.act {
+      border-color: #ff4040;
+      animation: bb 1.3s ease-in-out infinite;
+    }
+
+    @keyframes bb {
+
+      0%,
+      100% {
+        box-shadow: 0 0 5px rgba(255, 50, 50, .4)
+      }
+
+      50% {
+        box-shadow: 0 0 14px rgba(255, 50, 50, .8)
+      }
+    }
+
+    .ban-x {
+      position: absolute;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+    }
+
+    .ban-x::after {
+      content: "";
+      position: absolute;
+      left: -10%;
+      top: calc(50% - 1.5px);
+      width: 120%;
+      height: 3px;
+      background: rgba(210, 30, 30, .85);
+      transform: rotate(135deg);
+      box-shadow: 0 0 6px rgba(210, 30, 30, .5);
+    }
+
+    .ban-sl.banned .ban-x {
+      display: flex;
+    }
+
+    .ban-sl.ghost {
+      border-color: rgba(255, 255, 255, .4);
+      animation: bg 1.3s ease-in-out infinite;
+    }
+
+    @keyframes bg {
+
+      0%,
+      100% {
+        box-shadow: 0 0 5px rgba(255, 255, 255, .2)
+      }
+
+      50% {
+        box-shadow: 0 0 12px rgba(255, 255, 255, .55)
+      }
+    }
+
+    /* ── PICKS ROW (LCKスタイル) ── */
+    .picks-row {
+      height: 280px;
+      flex-shrink: 0;
+      display: flex;
+      border-top: 1px solid var(--bdr2);
+    }
+
+    .team-picks {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    .blue-tp {
+      flex-direction: row-reverse;
+    }
+
+    .pick-slot-h {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background: var(--bg2);
+      border-right: 1px solid rgba(0, 0, 0, .5);
+      min-width: 0;
+      transition: box-shadow .18s;
+    }
+
+    .pick-slot-h:last-child {
+      border-right: none;
+    }
+
+    /* アクティブ (選択待ち) */
+    .blue-tp .pick-slot-h.active-slot {
+      animation: gbl 1s ease infinite;
+    }
+
+    @keyframes gbl {
+
+      0%,
+      100% {
+        box-shadow: inset 0 0 0 2px rgba(30, 138, 255, .35), inset 0 0 16px rgba(30, 138, 255, .08)
+      }
+
+      50% {
+        box-shadow: inset 0 0 0 2px rgba(30, 138, 255, .9), inset 0 0 22px rgba(30, 138, 255, .28)
+      }
+    }
+
+    .red-tp .pick-slot-h.active-slot {
+      animation: grd 1s ease infinite;
+    }
+
+    @keyframes grd {
+
+      0%,
+      100% {
+        box-shadow: inset 0 0 0 2px rgba(232, 64, 64, .35), inset 0 0 16px rgba(232, 64, 64, .08)
+      }
+
+      50% {
+        box-shadow: inset 0 0 0 2px rgba(232, 64, 64, .9), inset 0 0 22px rgba(232, 64, 64, .28)
+      }
+    }
+
+    /* ゴーストプレビュー (選択中・未確定) */
+    /* ghost: 外枠と白グラデを同時にふわふわ */
+    /* ghost: box-shadow と白グロー overlay を opacity で滑らかにふわふわ */
+    .pick-slot-h.ghost {
+      animation: gg 1.3s ease-in-out infinite;
+    }
+
+    @keyframes gg {
+
+      0%,
+      100% {
+        box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .2)
+      }
+
+      50% {
+        box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .85), inset 0 0 20px rgba(255, 255, 255, .08)
+      }
+    }
+
+    .pick-slot-h.ghost .pick-art {
+      opacity: .85;
+    }
+
+    /* 白グラデ overlay: opacity だけアニメーション → 滑らか確定 */
+    .pick-slot-h.ghost .pick-fade {
+      background: linear-gradient(to bottom, transparent 30%, rgba(255, 255, 255, .18) 72%, rgba(255, 255, 255, .42) 100%);
+      animation: gf 1.3s ease-in-out infinite;
+    }
+
+    @keyframes gf {
+
+      0%,
+      100% {
+        opacity: .55
+      }
+
+      50% {
+        opacity: 1
+      }
+    }
+
+    .pick-slot-h.flash::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(255, 255, 255, 0);
+      animation: pick-flash .55s ease-out forwards;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    @keyframes pick-flash {
+      0% {
+        background: rgba(255, 255, 255, .75)
+      }
+
+      100% {
+        background: rgba(255, 255, 255, 0)
+      }
+    }
+
+    /* 確定済み */
+    .blue-tp .pick-slot-h.filled {
+      box-shadow: inset 0 0 0 2px rgba(30, 138, 255, .4);
+    }
+
+    .red-tp .pick-slot-h.filled {
+      box-shadow: inset 0 0 0 2px rgba(232, 64, 64, .4);
+    }
+
+    .pick-art {
+      position: absolute;
+      inset: 0;
+      background-repeat: no-repeat;
+      transition: background-image .2s, opacity .22s;
+    }
+
+    .pick-fade {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, transparent 28%, rgba(0, 0, 0, .72) 100%);
+      transition: background .3s;
+    }
+
+    /* ghost .pick-fade は @keyframes gf で制御 */
+    .pick-empty {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: .1;
+    }
+
+    .pick-name {
+      position: absolute;
+      bottom: 4px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: .62rem;
+      font-weight: 600;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding: 0 3px;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, .9);
+    }
+
+    .pick-num {
+      position: absolute;
+      top: 3px;
+      left: 4px;
+      font-size: .54rem;
+      font-weight: 700;
+      color: rgba(255, 255, 255, .4);
+      letter-spacing: 1px;
+    }
+
+    /* ピックセンター (アクションエリア) */
+    .picks-mid {
+      width: 190px;
+      flex-shrink: 0;
+      border-left: 1px solid var(--bdr2);
+      border-right: 1px solid var(--bdr2);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 9px;
+      gap: 6px;
+      background: var(--bg1);
+    }
+
+    .prev-box {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg3);
+      border: 1px solid var(--bdr2);
+      border-radius: 3px;
+      padding: 3px 8px 3px 3px;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .prev-box img {
+      width: 34px;
+      height: 34px;
+      border-radius: 2px;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+
+    .prev-name {
+      font-size: .62rem;
+      font-weight: 600;
+      color: var(--text3);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .prev-empty {
+      font-size: .72rem;
+      color: var(--text);
+    }
+
+    .conf-btn {
+      padding: 7px 0;
+      width: 100%;
+      background: var(--blue);
+      border: none;
+      border-radius: 3px;
+      color: #fff;
+      font-family: inherit;
+      font-size: .78rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all .15s;
+      flex-shrink: 0;
+    }
+
+    .conf-btn:hover:not(:disabled) {
+      background: #3a9fff;
+    }
+
+    .conf-btn:disabled {
+      opacity: .3;
+      cursor: not-allowed;
+      background: var(--bg4);
+      color: var(--text);
+    }
+
+    .wait-msg {
+      font-size: .7rem;
+      color: var(--text);
+      animation: pulse 1.4s ease infinite;
+      letter-spacing: 1px;
+      text-align: center;
+      line-height: 1.7;
+    }
+
+    .rw {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      width: 100%;
+    }
+
+    .rs-row {
+      display: flex;
+      gap: 12px;
+      font-size: .62rem;
+      color: var(--text);
+      letter-spacing: 1px;
+    }
+
+    .rs-row span.ok {
+      color: #4caf50;
+    }
+
+    .ready-btn {
+      padding: 7px 0;
+      width: 100%;
+      background: transparent;
+      border: 2px solid var(--gold);
+      border-radius: 3px;
+      color: var(--gold);
+      font-family: inherit;
+      font-size: .82rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all .18s;
+    }
+
+    .ready-btn:hover:not(:disabled) {
+      background: var(--gold);
+      color: #0a0a0a;
+    }
+
+    .ready-btn:disabled {
+      opacity: .3;
+      cursor: not-allowed;
+    }
+
+
+    /* ── タイマーバー ── */
+    .timer-wrap {
+      position: relative;
+      height: 38px;
+      flex-shrink: 0;
+      background: var(--bg2);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .timer-bar-l {
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      transition: width .9s linear;
+    }
+
+    .timer-bar-r {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      transition: width .9s linear;
+    }
+
+    .timer-bar-l.blue {
+      background: linear-gradient(90deg, rgba(30, 138, 255, .55), rgba(30, 138, 255, .25));
+    }
+
+    .timer-bar-r.blue {
+      background: linear-gradient(270deg, rgba(30, 138, 255, .55), rgba(30, 138, 255, .25));
+    }
+
+    .timer-bar-l.red {
+      background: linear-gradient(90deg, rgba(232, 64, 64, .55), rgba(232, 64, 64, .25));
+    }
+
+    .timer-bar-r.red {
+      background: linear-gradient(270deg, rgba(232, 64, 64, .55), rgba(232, 64, 64, .25));
+    }
+
+    .timer-bar-l.urgent {
+      background: linear-gradient(90deg, rgba(255, 80, 30, .75), rgba(255, 120, 30, .35));
+    }
+
+    .timer-bar-r.urgent {
+      background: linear-gradient(270deg, rgba(255, 80, 30, .75), rgba(255, 120, 30, .35));
+    }
+
+    .timer-num {
+      position: relative;
+      z-index: 1;
+      font-size: 1.4rem;
+      font-weight: 800;
+      letter-spacing: 2px;
+      color: #fff;
+      text-shadow: 0 0 8px rgba(0, 0, 0, .8);
+      min-width: 40px;
+      text-align: center;
+      transition: color .3s;
+    }
+
+    .timer-num.urgent {
+      color: #ff8040;
+      text-shadow: 0 0 12px rgba(255, 80, 30, .6);
+    }
+
+    .timer-num.zero {
+      color: #ff4040;
+      text-shadow: 0 0 16px rgba(255, 40, 40, .8);
+      animation: tz .4s ease infinite;
+    }
+
+    @keyframes tz {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: .5
+      }
+    }
+
+
+    /* ── 音量パネル ── */
+    .audio-btn {
+      padding: 4px 10px;
+      background: transparent;
+      border: 1px solid var(--bdr2);
+      border-radius: 2px;
+      color: var(--text);
+      font-size: .72rem;
+      cursor: pointer;
+      transition: all .15s;
+      user-select: none;
+      flex-shrink: 0;
+      margin-left: 6px;
+    }
+
+    .audio-btn:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    .audio-panel {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      z-index: 300;
+      background: var(--bg1);
+      border: 1px solid var(--bdr2);
+      border-radius: 0 4px 0 0;
+      padding: 14px 18px 16px;
+      min-width: 360px;
+    }
+
+    .audio-panel.on {
+      display: block;
+    }
+
+    .audio-panel-title {
+      font-size: .6rem;
+      color: var(--text);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .audio-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 9px;
+    }
+
+    .audio-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .audio-lbl {
+      font-size: .7rem;
+      color: var(--text2);
+      width: 80px;
+      flex-shrink: 0;
+      letter-spacing: .5px;
+    }
+
+    .audio-row input[type=range] {
+      flex: 1;
+      accent-color: var(--gold);
+    }
+
+    .audio-val {
+      font-size: .65rem;
+      color: var(--text);
+      width: 28px;
+      text-align: right;
+    }
+
+    .audio-mute {
+      background: transparent;
+      border: 1px solid var(--bdr2);
+      border-radius: 2px;
+      color: var(--text);
+      font-size: .65rem;
+      padding: 2px 6px;
+      cursor: pointer;
+      transition: all .15s;
+      flex-shrink: 0;
+    }
+
+    .audio-mute.muted {
+      border-color: var(--red);
+      color: var(--red);
+    }
+
+    .audio-section-lbl {
+      font-size: .58rem;
+      color: var(--text);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      border-bottom: 1px solid var(--bdr2);
+      padding-bottom: 4px;
+    }
+
+    .file-pick-btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 7px;
+      background: var(--bg3);
+      border: 1px solid var(--bdr2);
+      border-radius: 2px;
+      color: var(--text2);
+      font-size: .62rem;
+      cursor: pointer;
+      transition: all .15s;
+      flex-shrink: 0;
+      max-width: 72px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .file-pick-btn:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    .file-pick-btn span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 64px;
+      display: block;
+    }
+
+
+    /* ── モード選択画面 ── */
+    #s-mode {
+      gap: 20px;
+      padding: 20px;
+    }
+
+    .mode-card {
+      background: var(--bg1);
+      border: 1px solid var(--bdr2);
+      border-radius: 4px;
+      padding: 32px 36px;
+      width: 520px;
+      max-width: 96vw;
+      position: relative;
+    }
+
+    .mode-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+
+    .mode-section-lbl {
+      font-size: .65rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text);
+      margin-bottom: 12px;
+      margin-top: 4px;
+    }
+
+    .mode-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .mode-btn {
+      flex: 1;
+      padding: 13px 0;
+      background: transparent;
+      border: 1px solid var(--bdr2);
+      border-radius: 3px;
+      color: var(--text2);
+      font-family: inherit;
+      font-size: .82rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .mode-btn:hover:not(.mdisabled) {
+      border-color: var(--text2);
+      color: var(--text3);
+    }
+
+    .mode-btn.on {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #fff;
+    }
+
+    .mode-btn.mdisabled {
+      opacity: .3;
+      cursor: not-allowed;
+    }
+
+    .fearless-note {
+      font-size: .68rem;
+      color: var(--red);
+      margin-top: 8px;
+    }
+
+    .mode-desc {
+      font-size: .73rem;
+      color: var(--text2);
+      line-height: 1.7;
+      margin-top: 10px;
+      padding: 10px 12px;
+      background: var(--bg2);
+      border-radius: 3px;
+    }
+
+    /* ── シリーズインジケーター ── */
+    .series-wrap {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .series-wrap.on {
+      display: flex;
+    }
+
+    .series-dots {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sdot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid var(--bdr2);
+      transition: all .3s;
+    }
+
+    .sdot.bw {
+      background: var(--blue);
+      border-color: var(--blue);
+      box-shadow: 0 0 8px rgba(30, 138, 255, .7);
+    }
+
+    .sdot.rw {
+      background: var(--red);
+      border-color: var(--red);
+      box-shadow: 0 0 8px rgba(232, 64, 64, .7);
+    }
+
+    .ssep {
+      width: 2px;
+      height: 20px;
+      background: var(--bdr2);
+      border-radius: 1px;
+      margin: 0 4px;
+    }
+
+    .sgame-lbl {
+      display: none !important;
+    }
+
+    /* ── 勝者選択 ── */
+    .winner-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      width: 100%;
+    }
+
+    .winner-lbl {
+      font-size: .62rem;
+      color: var(--gold);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .winner-btns {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .wbtn-blue {
+      flex: 1;
+      padding: 8px 0;
+      background: var(--blue-g);
+      border: 2px solid var(--blue);
+      border-radius: 3px;
+      color: var(--blue);
+      font-family: inherit;
+      font-size: .8rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .wbtn-blue:hover {
+      background: var(--blue);
+      color: #fff;
+    }
+
+    .wbtn-red {
+      flex: 1;
+      padding: 8px 0;
+      background: var(--red-g);
+      border: 2px solid var(--red);
+      border-radius: 3px;
+      color: var(--red);
+      font-family: inherit;
+      font-size: .8rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .wbtn-red:hover {
+      background: var(--red);
+      color: #fff;
+    }
+
+    /* ── フィアレス使用済みパネル ── */
+    /* フィアレスパネル */
+    .fp {
+      width: 0;
+      overflow: hidden;
+      transition: width .3s;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg1);
+      flex-shrink: 0;
+    }
+
+    .fp.visible {
+      width: 124px;
+      overflow-y: auto;
+    }
+
+    .fp.visible::-webkit-scrollbar {
+      width: 3px;
+    }
+
+    .fp.visible::-webkit-scrollbar-thumb {
+      background: var(--bdr2);
+    }
+
+    .fp-blue {
+      border-right: 1px solid var(--bdr2);
+      background: var(--bg1);
+    }
+
+    .fp-red {
+      border-left: 1px solid var(--bdr2);
+      background: var(--bg1);
+    }
+
+    .fp-game-block {
+      display: flex;
+      flex-direction: column;
+      padding: 4px 3px 2px;
+    }
+
+    .fp-game-lbl {
+      font-size: .48rem;
+      color: var(--text);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-align: center;
+      padding: 2px 0 3px;
+      flex-shrink: 0;
+    }
+
+    .fp-game-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2px;
+      justify-content: flex-start;
+      width: 120px;
+    }
+
+    .fp-champ {
+      width: 38px;
+      height: 38px;
+      object-fit: cover;
+      border-radius: 2px;
+      opacity: .6;
+      filter: grayscale(.3);
+      display: block;
+    }
+
+    .fp-champ-wrap {
+      position: relative;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    .fp-champ-wrap::after {
+      content: "✕";
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(200, 30, 30, .3);
+      color: rgba(255, 80, 80, .85);
+      font-size: .85rem;
+      font-weight: 900;
+    }
+
+    .fp-divider {
+      height: 1px;
+      background: var(--bdr2);
+      margin: 3px 4px;
+    }
+
+
+    /* ── チャンピオン統計オーバーレイ ── */
+    .pick-stats-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0);
+      animation: stats-in .35s ease-out forwards;
+      pointer-events: none;
+    }
+
+    @keyframes stats-in {
+      0% {
+        background: rgba(255, 255, 255, .85);
+      }
+
+      40% {
+        background: rgba(255, 255, 255, .92);
+      }
+
+      100% {
+        background: rgba(10, 12, 18, .82);
+      }
+    }
+
+    .pick-stats-overlay.out {
+      animation: stats-out .4s ease-in forwards;
+    }
+
+    @keyframes stats-out {
+      0% {
+        background: rgba(10, 12, 18, .82);
+        opacity: 1;
+      }
+
+      100% {
+        background: rgba(10, 12, 18, 0);
+        opacity: 0;
+      }
+    }
+
+    .pso-name {
+      font-size: .58rem;
+      font-weight: 700;
+      color: rgba(255, 255, 255, .9);
+      letter-spacing: 1px;
+      margin-bottom: 5px;
+      text-align: center;
+      padding: 0 4px;
+    }
+
+    .pso-row {
+      display: flex;
+      gap: 6px;
+    }
+
+    .pso-stat {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1px;
+    }
+
+    .pso-val {
+      font-size: .78rem;
+      font-weight: 800;
+      color: var(--gold);
+    }
+
+    .pso-lbl {
+      font-size: .44rem;
+      color: rgba(255, 255, 255, .6);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .pso-sep {
+      width: 1px;
+      background: rgba(255, 255, 255, .2);
+      align-self: stretch;
+      margin: 2px 0;
+    }
+
+    /* ── タイムアップ モーダル ── */
+    .timeout-ov {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      background: rgba(0, 0, 0, .75);
+      backdrop-filter: blur(6px);
+      align-items: center;
+      justify-content: center;
+    }
+
+    .timeout-ov.on {
+      display: flex;
+    }
+
+    .timeout-card {
+      background: var(--bg1);
+      border: 1px solid var(--bdr2);
+      border-radius: 4px;
+      padding: 32px 36px;
+      text-align: center;
+      max-width: 320px;
+      width: 90%;
+      position: relative;
+    }
+
+    .timeout-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #ff4040, transparent);
+    }
+
+    .timeout-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #ff4040;
+      letter-spacing: 2px;
+      margin-bottom: 6px;
+    }
+
+    .timeout-sub {
+      font-size: .75rem;
+      color: var(--text);
+      margin-bottom: 22px;
+      line-height: 1.7;
+    }
+
+    .timeout-btns {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .btn-repick {
+      padding: 10px 0;
+      background: var(--blue);
+      border: none;
+      border-radius: 3px;
+      color: #fff;
+      font-family: inherit;
+      font-size: .8rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .btn-repick:hover {
+      background: #3a9fff;
+    }
+
+    .btn-restart {
+      padding: 10px 0;
+      background: transparent;
+      border: 1px solid var(--bdr2);
+      border-radius: 3px;
+      color: var(--text2);
+      font-family: inherit;
+      font-size: .8rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .btn-restart:hover {
+      border-color: var(--red);
+      color: var(--red);
+    }
+
+    /* 完了バー (ポップアップの代わり) */
+    .done-bar {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      height: 52px;
+      flex-shrink: 0;
+      background: var(--bg1);
+      border-top: 1px solid var(--bdr2);
+      padding: 0 12px;
+    }
+
+    .done-bar.on {
+      display: flex;
+    }
+
+    .done-bar-label {
+      font-size: .7rem;
+      color: var(--gold);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      flex: 1;
+      text-align: center;
+    }
+
+    .btn-sm {
+      padding: 7px 18px;
+      border: none;
+      border-radius: 3px;
+      font-family: inherit;
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all .15s;
+      white-space: nowrap;
+    }
+
+    .btn-next {
+      background: var(--gold);
+      color: #0a0a0a;
+    }
+
+    .btn-next:hover {
+      background: #dab050;
+    }
+
+    .btn-copy {
+      background: var(--bg3);
+      border: 1px solid var(--bdr2);
+      color: var(--text3);
+    }
+
+    .btn-copy:hover {
+      border-color: var(--text2);
+    }
+
+    .btn-copy.copied {
+      border-color: #4caf50;
+      color: #4caf50;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg2);
+      border: 1px solid var(--gold2);
+      border-radius: 3px;
+      padding: 8px 18px;
+      font-size: .78rem;
+      color: var(--gold);
+      z-index: 600;
+      pointer-events: none;
+      animation: tin 3s forwards;
+    }
+
+    @keyframes tin {
+      0% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(8px)
+      }
+
+      10% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0)
+      }
+
+      75% {
+        opacity: 1
+      }
+
+      100% {
+        opacity: 0
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="s-load" class="scr on">
+    <div class="spin"></div>
+    <div class="ld-t">INITIALIZING...</div>
+  </div>
+
+  <div id="s-setup" class="scr">
+    <div class="setup-card">
+      <div class="setup-title">🔥 Firebase 設定</div>
+      <div class="setup-sub">リアルタイム同期に Firebase を使用します。以下の手順で設定してください（一度だけ）。</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-txt"><a href="https://console.firebase.google.com/"
+              target="_blank">console.firebase.google.com</a> でプロジェクト作成</div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-txt">左メニュー <strong>Realtime Database</strong> → データベースを作成 → テストモード</div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-txt">⚙️設定 → マイアプリ → <code>&lt;/&gt; Web</code> でアプリ追加 → <code>firebaseConfig</code> の値を入力
+          </div>
+        </div>
+      </div>
+      <input class="inp" id="fc-apikey" placeholder='apiKey: "AIzaSy..."'>
+      <input class="inp" id="fc-authdom" placeholder='authDomain: "your-project.firebaseapp.com"'>
+      <input class="inp" id="fc-dburl" placeholder='databaseURL: "https://your-project-default-rtdb.firebaseio.com"'>
+      <input class="inp" id="fc-projectid" placeholder='projectId: "your-project-id"'>
+      <button class="btn btn-gold" onclick="saveFirebaseConfig()">保存して開始</button>
+      <p style="font-size:.65rem;color:var(--text);margin-top:10px;text-align:center">設定はブラウザに保存されます。次回以降は不要です。</p>
+    </div>
+  </div>
+
+  <div id="s-lobby" class="scr">
+    <div class="logo">DRAFT TOOL <small>League of Legends · Summoner's Rift · 5v5</small></div>
+    <div class="card">
+      <div class="card-lbl">新しいドラフトを作成</div>
+      <button class="btn btn-gold" onclick="createRoom()">ルームを作成する</button>
+      <div class="divider">または参加</div>
+      <div class="card-lbl">ルームコードを入力</div>
+      <div class="row-flex">
+        <input class="inp" id="join-inp" type="text" placeholder="XXXXXX" maxlength="8"
+          onkeydown="if(event.key==='Enter')joinInput()">
+        <button class="btn btn-blue" onclick="joinInput()">参加</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODE SELECT -->
+  <div id="s-mode" class="scr">
+    <div class="logo" style="font-size:1.5rem">DRAFT TOOL</div>
+    <div class="mode-card">
+      <div class="mode-section-lbl">シリーズ</div>
+      <div class="mode-row">
+        <button class="mode-btn on" id="mb-bo1" onclick="setMode('bo1')">BO1</button>
+        <button class="mode-btn" id="mb-bo3" onclick="setMode('bo3')">BO3</button>
+        <button class="mode-btn" id="mb-bo5" onclick="setMode('bo5')">BO5</button>
+      </div>
+      <div class="mode-section-lbl" style="margin-top:16px">ドラフトモード</div>
+      <div class="mode-row">
+        <button class="mode-btn on" id="mb-tournament" onclick="setDraftType('tournament')">トーナメント</button>
+        <button class="mode-btn" id="mb-fearless" onclick="setDraftType('fearless')">フィアレス</button>
+      </div>
+      <div class="fearless-note" id="fearless-note" style="display:none">⚠️ フィアレスはBO3 / BO5のみ選択できます</div>
+      <div class="mode-desc" id="mode-desc">BANを3体×2フェーズ、PICKをフェーズ1→2の順で行うトーナメント標準形式です。</div>
+      <button class="btn btn-gold" style="margin-top:16px" onclick="confirmMode()">次へ →</button>
+      <button class="btn btn-ghost" style="margin-top:6px;width:100%;padding:8px"
+        onclick="show('s-mode',false);show('s-lobby')">← 戻る</button>
+    </div>
+  </div>
+
+
+  <div id="s-role" class="scr">
+    <div class="logo" style="font-size:1.5rem">DRAFT TOOL</div>
+    <div class="room-badge">
+      <span style="font-size:.65rem;color:var(--text);letter-spacing:2px">ROOM</span>
+      <span class="code" id="role-code">------</span>
+      <button class="copy-btn" onclick="copyLink()">🔗 URLをコピー</button>
+    </div>
+    <p style="font-size:.7rem;color:var(--text);letter-spacing:2px;text-transform:uppercase">ロールを選択</p>
+    <div class="role-grid">
+      <div class="rcard blue" id="rc-blue" onclick="pickRole('blue')">
+        <div class="ri">🔵</div>
+        <div class="rn">Blue Side</div>
+        <div class="rs" id="ra-blue">利用可能</div>
+      </div>
+      <div class="rcard red" id="rc-red" onclick="pickRole('red')">
+        <div class="ri">🔴</div>
+        <div class="rn">Red Side</div>
+        <div class="rs" id="ra-red">利用可能</div>
+      </div>
+      <div class="rcard spec" onclick="pickRole('spectator')">
+        <div class="ri">👁️</div>
+        <div class="rn">観戦</div>
+        <div class="rs">見るだけ</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── DRAFT SCREEN ─── -->
+  <div id="s-draft">
+    <header class="dh">
+      <div class="dh-team blue">
+        <div class="dh-team-name">Blue Side</div>
+        <div class="dh-team-side">blue side</div>
+      </div>
+      <div class="dh-center">
+        <div class="dh-phase" id="dh-phase">—</div>
+        <div class="dh-status" id="dh-status">待機中...</div>
+        <div class="series-wrap" id="series-wrap">
+          <div class="series-dots" id="series-dots"></div>
+          <div class="sgame-lbl" id="sgame-lbl" style="display:none">GAME 1</div>
+        </div>
+      </div>
+      <div class="dh-team red">
+        <div class="dh-team-name">Red Side</div>
+        <div class="dh-team-side">red side</div>
+      </div>
+    </header>
+
+    <!-- タイマーバー -->
+    <div class="timer-wrap" id="timer-wrap">
+      <div class="timer-bar-l blue" id="timer-bar-l"></div>
+      <div class="timer-bar-r blue" id="timer-bar-r"></div>
+      <div class="timer-num" id="timer-num">30</div>
+    </div>
+
+    <!-- チャンピオングリッド (上部) -->
+    <div class="upper-area">
+      <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0">
+        <div class="fb">
+          <button class="rtab all on" id="tab-all" onclick="setF('all')">ALL</button>
+          <button class="rtab" id="tab-top" onclick="setF('top')">⚔️ TOP</button>
+          <button class="rtab" id="tab-jungle" onclick="setF('jungle')">🌿 JG</button>
+          <button class="rtab" id="tab-mid" onclick="setF('mid')">💫 MID</button>
+          <button class="rtab" id="tab-adc" onclick="setF('adc')">🏹 ADC</button>
+          <button class="rtab" id="tab-support" onclick="setF('support')">🛡️ SUP</button>
+          <input class="sb" id="sb" type="text" placeholder="検索..." oninput="applyF()">
+          <button class="audio-btn" onclick="toggleAudioPanel()">🔊</button>
+        </div>
+        <div class="cw-row">
+          <div class="fp fp-blue" id="fp-blue"></div>
+          <div class="cw">
+            <div class="cg" id="cg"></div>
+          </div>
+          <div class="fp fp-red" id="fp-red"></div>
+        </div>
+      </div>
+
+      <!-- BANストリップ -->
+      <div class="bans-strip" id="snap-bans">
+        <div class="bans-side-glow blue" id="bans-glow-blue"></div>
+        <div class="bans-side-glow red" id="bans-glow-red"></div>
+        <div class="bans-side" id="br-blue"></div>
+        <div class="bans-lbl" id="bans-lbl">BANS</div>
+        <div class="bans-side" id="br-red"></div>
+      </div>
+
+      <!-- ピックロウ (LCKスタイル・横並び) -->
+      <div class="picks-row" id="snap-picks">
+        <div class="team-picks blue-tp" id="tp-blue"></div>
+        <div class="picks-mid" id="ac"></div>
+        <div class="team-picks red-tp" id="tp-red"></div>
+      </div>
+
+      <!-- 完了バー -->
+      <div class="done-bar" id="done-bar">
+        <button class="btn-sm btn-copy" id="copy-btn" onclick="copySnapshot()">📷 画像コピー</button>
+        <div class="done-bar-label" id="done-bar-label">DRAFT COMPLETE</div>
+        <div id="winner-area"
+          style="display:none;flex:1;display:none;align-items:center;justify-content:center;gap:8px">
+          <span style="font-size:.62rem;color:var(--gold);letter-spacing:2px">GAME 勝者：</span>
+          <button class="wbtn-blue" style="padding:5px 16px" onclick="selectWinner('blue')">🔵 Blue Win</button>
+          <button class="wbtn-red" style="padding:5px 16px" onclick="selectWinner('red')">🔴 Red Win</button>
+        </div>
+        <div id="side-select-area" style="display:none;align-items:center;justify-content:center;gap:8px;flex:1">
+          <span style="font-size:.62rem;color:var(--text2);letter-spacing:2px">次の試合のサイドを選択</span>
+          <button class="wbtn-blue" style="padding:5px 16px" onclick="selectSide('blue')">🔵 Blue Side</button>
+          <button class="wbtn-red" style="padding:5px 16px" onclick="selectSide('red')">🔴 Red Side</button>
+        </div>
+        <button class="btn-sm btn-next" id="btn-next" onclick="goNew()" style="display:none">次のゲーム →</button>
+      </div>
+    </div>
+
+    <!-- 音量パネル -->
+    <div class="audio-panel" id="audio-panel">
+      <div class="audio-panel-title">AUDIO SETTINGS</div>
+
+      <div class="audio-section-lbl">BGM</div>
+      <div class="audio-row">
+        <span class="audio-lbl">BGM</span>
+        <input type="range" min="0" max="100" value="50" id="vol-ban-bgm"
+          oninput="setVol('banBgm',this.value);setVol('pickBgm',this.value)">
+        <span class="audio-val" id="vv-ban-bgm">50</span>
+        <button class="audio-mute" id="mute-ban-bgm" onclick="toggleMuteBgm()">OFF</button>
+      </div>
+
+      <div class="audio-section-lbl" style="margin-top:10px">SFX</div>
+      <div class="audio-row">
+        <span class="audio-lbl">BAN 効果音</span>
+        <input type="range" min="0" max="100" value="50" id="vol-ban-sfx" oninput="setVol('banSfx',this.value)">
+        <span class="audio-val" id="vv-ban-sfx">50</span>
+        <button class="audio-mute" id="mute-ban-sfx" onclick="toggleMute('banSfx')">OFF</button>
+      </div>
+      <div class="audio-row">
+        <span class="audio-lbl">PICK 効果音</span>
+        <input type="range" min="0" max="100" value="50" id="vol-pick-sfx" oninput="setVol('pickSfx',this.value)">
+        <span class="audio-val" id="vv-pick-sfx">50</span>
+        <button class="audio-mute" id="mute-pick-sfx" onclick="toggleMute('pickSfx')">OFF</button>
+      </div>
+    </div>
+
+    <!-- タイムアップモーダル -->
+    <div class="timeout-ov" id="timeout-ov">
+      <div class="timeout-card">
+        <div class="timeout-title">TIME UP</div>
+        <div class="timeout-sub" id="timeout-sub">時間切れです。</div>
+        <div class="timeout-btns">
+          <button class="btn-repick" onclick="timeoutRepick()">このターンをやり直す</button>
+          <button class="btn-restart" onclick="timeoutRestart()">最初からやり直す</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+      import {getDatabase, ref, set, get, update, onValue, remove, onDisconnect}
+        from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+
+      const SEQ = [
+        {t: 'blue', a: 'ban'}, {t: 'red', a: 'ban'},
+        {t: 'blue', a: 'ban'}, {t: 'red', a: 'ban'},
+        {t: 'blue', a: 'ban'}, {t: 'red', a: 'ban'},
+        {t: 'blue', a: 'pick'},
+        {t: 'red', a: 'pick'}, {t: 'red', a: 'pick'},
+        {t: 'blue', a: 'pick'}, {t: 'blue', a: 'pick'},
+        {t: 'red', a: 'pick'},
+        {t: 'red', a: 'ban'}, {t: 'blue', a: 'ban'},
+        {t: 'red', a: 'ban'}, {t: 'blue', a: 'ban'},
+        {t: 'red', a: 'pick'},
+        {t: 'blue', a: 'pick'}, {t: 'blue', a: 'pick'},
+        {t: 'red', a: 'pick'},
+      ];
+      const PHLBL = [
+        'Phase 1 · BAN', 'Phase 1 · BAN', 'Phase 1 · BAN', 'Phase 1 · BAN', 'Phase 1 · BAN', 'Phase 1 · BAN',
+        'Phase 1 · PICK', 'Phase 1 · PICK', 'Phase 1 · PICK', 'Phase 1 · PICK', 'Phase 1 · PICK', 'Phase 1 · PICK',
+        'Phase 2 · BAN', 'Phase 2 · BAN', 'Phase 2 · BAN', 'Phase 2 · BAN',
+        'Phase 2 · PICK', 'Phase 2 · PICK', 'Phase 2 · PICK', 'Phase 2 · PICK',
+      ];
+      const ROLES = {
+        Aatrox: ['top'], Akali: ['top', 'mid'], Ambessa: ['top', 'jungle'], Camille: ['top'], Chogath: ['top'], Darius: ['top'], DrMundo: ['top', 'jungle'], Fiora: ['top'], Gangplank: ['top'], Garen: ['top'], Gnar: ['top'], Gragas: ['top', 'jungle'], Gwen: ['top'], Illaoi: ['top'], Irelia: ['top', 'mid'], Jax: ['top', 'jungle'], Jayce: ['top', 'mid'], Kayle: ['top', 'mid'], Kennen: ['top'], Malphite: ['top', 'support'], Maokai: ['top', 'support'], Mordekaiser: ['top'], Nasus: ['top'], Nocturne: ['top', 'jungle'], Olaf: ['top', 'jungle'], Ornn: ['top'], Pantheon: ['top', 'mid', 'support'], Poppy: ['top', 'support'], Quinn: ['top'], Renekton: ['top'], Rengar: ['top', 'jungle'], Riven: ['top'], Rumble: ['top', 'mid'], Sejuani: ['top', 'jungle'], Sett: ['top', 'jungle'], Shen: ['top', 'support'], Singed: ['top'], Sion: ['top'], TahmKench: ['top', 'support'], Teemo: ['top'], Trundle: ['top', 'jungle'], Tryndamere: ['top'], Urgot: ['top'], Vladimir: ['top', 'mid'], Volibear: ['top', 'jungle'], Warwick: ['top', 'jungle'], MonkeyKing: ['top', 'jungle'], Yasuo: ['top', 'mid'], Yone: ['top', 'mid'], Yorick: ['top'], Zac: ['top', 'jungle'],
+        Amumu: ['jungle', 'support'], BelVeth: ['jungle'], Briar: ['jungle'], Diana: ['jungle', 'mid'], Ekko: ['jungle', 'mid'], Elise: ['jungle'], Evelynn: ['jungle'], Fiddlesticks: ['jungle'], Graves: ['jungle'], Hecarim: ['jungle'], Ivern: ['jungle'], JarvanIV: ['jungle'], Kayn: ['jungle'], Khazix: ['jungle'], Kindred: ['jungle'], LeeSin: ['jungle'], Lillia: ['jungle'], MasterYi: ['jungle'], Naafiri: ['jungle', 'mid'], Nidalee: ['jungle'], Nunu: ['jungle'], Rammus: ['jungle'], RekSai: ['jungle'], Shaco: ['jungle', 'support'], Shyvana: ['jungle'], Skarner: ['jungle'], Sylas: ['jungle', 'mid'], Taliyah: ['jungle', 'mid'], Udyr: ['jungle'], Vi: ['jungle'], Viego: ['jungle'], XinZhao: ['jungle'], Zed: ['jungle', 'mid'],
+        Ahri: ['mid'], Anivia: ['mid'], Annie: ['mid', 'support'], AurelionSol: ['mid'], Aurora: ['mid'], Azir: ['mid'], Cassiopeia: ['mid'], Corki: ['mid', 'adc'], Fizz: ['mid'], Galio: ['mid', 'support'], Hwei: ['mid', 'support'], Karma: ['mid', 'support'], Kassadin: ['mid'], Katarina: ['mid'], Leblanc: ['mid'], Lux: ['mid', 'support'], Malzahar: ['mid'], Neeko: ['mid', 'support'], Orianna: ['mid'], Qiyana: ['mid'], Ryze: ['mid'], Swain: ['mid', 'support'], Syndra: ['mid'], Talon: ['mid', 'jungle'], TwistedFate: ['mid'], Veigar: ['mid', 'support'], VelKoz: ['mid', 'support'], Vex: ['mid'], Viktor: ['mid'], Xerath: ['mid', 'support'], Ziggs: ['mid', 'adc'], Zoe: ['mid'],
+        Akshan: ['adc', 'mid'], Aphelios: ['adc'], Ashe: ['adc', 'support'], Caitlyn: ['adc'], Draven: ['adc'], Ezreal: ['adc'], Jhin: ['adc'], Jinx: ['adc'], Kaisa: ['adc'], Kalista: ['adc'], KogMaw: ['adc'], Lucian: ['adc', 'mid'], MissFortune: ['adc'], Nilah: ['adc'], Samira: ['adc'], Seraphine: ['adc', 'support'], Sivir: ['adc'], Smolder: ['adc'], Tristana: ['adc', 'mid'], Twitch: ['adc', 'jungle'], Varus: ['adc', 'mid'], Vayne: ['adc', 'top'], Xayah: ['adc'], Zeri: ['adc'],
+        Alistar: ['support'], Bard: ['support'], Blitzcrank: ['support'], Brand: ['support', 'mid'], Janna: ['support'], Leona: ['support'], Lulu: ['support'], Mel: ['support'], Morgana: ['support', 'mid'], Nami: ['support'], Nautilus: ['support'], Pyke: ['support'], Rakan: ['support'], Rell: ['support'], Renata: ['support'], Senna: ['support', 'adc'], Sona: ['support'], Soraka: ['support'], Taric: ['support'], Thresh: ['support'], Yuumi: ['support'], Zilean: ['support'], Zyra: ['support', 'mid'],
+      };
+
+      let db, roomId, myRole, champMap = {}, ddVer = '14.23.1';
+
+      // ── シリーズ状態 ──────────────────────────────────
+      let roomConfig = {mode: 'bo1', draftType: 'tournament'};
+      let currentGame = 1;
+      let seriesScores = {blue: 0, red: 0};
+      let fearlessUsed = {blue: [], red: []};
+      let localMode = 'bo1';
+      let localDraft = 'tournament';
+      let seriesDone = false;
+
+
+
+      function getSeq() {return SEQ;}
+      function getPhlbl() {return PHLBL;}
+      function targetWins() {return roomConfig.mode === 'bo5' ? 3 : roomConfig.mode === 'bo3' ? 2 : 1;}
+      function isBo() {return roomConfig.mode !== 'bo1';}
+
+      let curStep = 0, actions = {}, started = false, readyState = {blue: false, red: false};
+      let selected = null, roleFilter = 'all', lastState = null;
+      let timerInterval = null, timerSec = 0, timerStep = -1;
+      let prevActionsLen = -1; // SFX用: 前フレームのアクション数
+
+      const $ = id => document.getElementById(id);
+      const show = (id, on = true) => {const el = $(id); if (!el) return; if (id === 's-draft') {el.classList.toggle('on', on); return;} el.classList.toggle('on', on);};
+      const toast = msg => {document.querySelectorAll('.toast').forEach(t => t.remove()); const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 3300);};
+      const genId = () => Array.from({length: 6}, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 33)]).join('');
+      window.copyLink = () => {const url = `${location.origin}${location.pathname}?room=${roomId}`; navigator.clipboard.writeText(url).then(() => toast('URLをコピーしました')).catch(() => toast(url));};
+      window.copySnapshot = async () => {
+        const btn = document.getElementById('copy-btn');
+        btn.textContent = '⏳ 生成中...'; btn.disabled = true;
+        try {
+          // html2canvas でスナップ対象を結合
+          const bans = document.getElementById('snap-bans');
+          const picks = document.getElementById('snap-picks');
+          const [c1, c2] = await Promise.all([
+            html2canvas(bans, {backgroundColor: '#14161a', scale: 2, useCORS: true, logging: false}),
+            html2canvas(picks, {backgroundColor: '#14161a', scale: 2, useCORS: true, logging: false}),
+          ]);
+          // 縦に結合した canvas を作成
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.max(c1.width, c2.width);
+          canvas.height = c1.height + c2.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(c1, 0, 0);
+          ctx.drawImage(c2, 0, c1.height);
+          // クリップボードにコピー
+          canvas.toBlob(async blob => {
+            try {
+              await navigator.clipboard.write([new ClipboardItem({'image/png': blob})]);
+              btn.textContent = '✓ コピー完了';
+              btn.classList.add('copied');
+              setTimeout(() => {btn.textContent = '📷 画像コピー'; btn.classList.remove('copied'); btn.disabled = false;}, 2500);
+            } catch {
+              // フォールバック: ダウンロード
+              const a = document.createElement('a');
+              a.href = canvas.toDataURL('image/png');
+              a.download = `draft-${roomId}.png`;
+              a.click();
+              btn.textContent = '📷 画像コピー'; btn.disabled = false;
+            }
+          }, 'image/png');
+        } catch (e) {
+          toast('スナップショットに失敗しました: ' + e.message);
+          btn.textContent = '📷 画像コピー'; btn.disabled = false;
+        }
+      };
+
+
+      // ── タイマー ─────────────────────────────────
+      const TIMER_SEC = 30; // 1ターンの秒数
+
+      function startTimer(step, team, timerStart) {
+        stopTimer();
+        timerStep = step;
+        const wrap = $('timer-wrap');
+        const barL = $('timer-bar-l');
+        const barR = $('timer-bar-r');
+        const num = $('timer-num');
+        if (!wrap) return;
+
+        const cls = team === 'blue' ? 'blue' : 'red';
+        // まず transition なしで 0% に瞬時リセット
+        barL.style.transition = 'none';
+        barR.style.transition = 'none';
+        barL.style.width = '0%';
+        barR.style.width = '0%';
+        barL.className = `timer-bar-l ${cls}`;
+        barR.className = `timer-bar-r ${cls}`;
+
+        let lastDisplaySec = -1;
+        let timeoutFired = false;
+
+        function raf() {
+          if (!timerInterval) return; // 停止済み
+
+          const elapsedMs = timerStart ? (Date.now() - timerStart) : 0;
+          const elapsedSec = elapsedMs / 1000;
+          const remainSec = Math.max(0, TIMER_SEC - elapsedSec);
+          // バー: 0% → 50% を連続で
+          const pct = Math.min(50, (elapsedSec / TIMER_SEC) * 50);
+          barL.style.width = pct + '%';
+          barR.style.width = pct + '%';
+
+          // 数字は1秒単位で更新
+          const displaySec = Math.ceil(remainSec);
+          if (displaySec !== lastDisplaySec) {
+            lastDisplaySec = displaySec;
+            num.textContent = displaySec === 0 ? '0' : displaySec;
+            const urgent = displaySec <= 10;
+            const barCls = urgent ? 'urgent' : cls;
+            barL.className = `timer-bar-l ${barCls}`;
+            barR.className = `timer-bar-r ${barCls}`;
+            num.className = displaySec <= 0 ? 'timer-num zero' : urgent ? 'timer-num urgent' : 'timer-num';
+            // 残り10秒以下のカウントダウンティック（0を含む）
+            if (displaySec <= 10 && displaySec >= 0 && actx) playTickSfx();
+          }
+
+          // タイムアップ処理（1回だけ）
+          if (remainSec <= 0 && !timeoutFired) {
+            timeoutFired = true;
+            // 0を表示したままrAFを止める（wrap は非表示にしない）
+            cancelAnimationFrame(timerInterval); timerInterval = null;
+            num.textContent = '0';
+            num.className = 'timer-num zero';
+            barL.style.width = '50%'; barR.style.width = '50%';
+            // 1秒後にタイムアップ判定
+            const savedStep = timerStep;
+            const cur = SEQ[curStep];
+            if (cur && myRole === cur.t) {
+              setTimeout(async () => {
+                if (curStep !== savedStep || lastState?.done) return;
+                // 0表示を消してタイムアップへ
+                if (selected) {
+                  // 選択中なら強制確定
+                  const used = new Set(Object.values(actions).filter(Boolean));
+                  if (!used.has(selected)) {
+                    const ns = curStep + 1;
+                    const seqLen2 = getSeq().length;
+                    await update(ref(db, `rooms/${roomId}`), {[`actions/${curStep}`]: selected, step: ns, done: ns >= seqLen2, hover: null, timerStart: Date.now()});
+                    selected = null;
+                  }
+                } else {
+                  showTimeoutModal();
+                }
+              }, 2000);
+            } else {
+              // 観戦/相手側も1秒後に0表示を消す
+              setTimeout(() => {
+              }, 2000);
+            }
+            return;
+          }
+
+          timerInterval = requestAnimationFrame(raf);
+        }
+
+        timerInterval = requestAnimationFrame(raf);
+      }
+
+      function stopTimer() {
+        if (timerInterval) {cancelAnimationFrame(timerInterval); timerInterval = null;}
+        const wrap = $('timer-wrap');
+      }
+
+      function showTimeoutModal() {
+        const cur = SEQ[curStep];
+        if (!cur) return;
+        const sub = $('timeout-sub');
+        if (sub) sub.textContent = `${cur.a === 'ban' ? 'BAN' : 'PICK'}の時間切れです。`;
+        const ov = $('timeout-ov');
+        if (ov) ov.classList.add('on');
+      }
+
+      window.timeoutRepick = () => {
+        $('timeout-ov').classList.remove('on');
+        selected = null;
+        timerStep = -1; // タイマーを強制リセット → startTimer が再発火
+        if (db && roomId) update(ref(db, `rooms/${roomId}`), {hover: null, timerStart: Date.now()});
+      };
+
+      window.timeoutRestart = async () => {
+        $('timeout-ov').classList.remove('on');
+        stopTimer();
+        stopBgm();
+        if (db && roomId) {
+          // 同じルームで全員をリセット（新ルームに飛ばさず準備画面へ）
+          await update(ref(db, `rooms/${roomId}`), {
+            step: 0, actions: null, started: false, done: false,
+            hover: null, bgmIndex: null, timerStart: null,
+            'ready/blue': false, 'ready/red': false,
+            sideSelectPending: false, loser: null,
+          });
+        }
+      };
+
+
+      // ── モード選択 ───────────────────────────────────
+      const MODE_DESC = {
+        tournament: 'BANを3体×2フェーズ、PICKをフェーズ1→2の順で行うトーナメント標準形式です。',
+        fearless: '一度PICKしたチャンピオンはシリーズ中使用不可になります。BO3/BO5専用。',
+      };
+
+      window.setMode = (mode) => {
+        localMode = mode;
+        ['bo1', 'bo3', 'bo5'].forEach(m => $(`mb-${m}`)?.classList.toggle('on', m === mode));
+        // BO1のときFearless選択不可
+        const fbtn = $('mb-fearless');
+        if (mode === 'bo1' && localDraft === 'fearless') {
+          localDraft = 'tournament';
+          setDraftType('tournament');
+        }
+        fbtn?.classList.toggle('mdisabled', mode === 'bo1');
+      };
+
+      window.setDraftType = (dtype) => {
+        if (dtype === 'fearless' && localMode === 'bo1') {toast('フィアレスはBO3/BO5専用です'); return;}
+        localDraft = dtype;
+        ['draft', 'tournament', 'fearless'].forEach(d => $(`mb-${d}`)?.classList.toggle('on', d === dtype));
+        const note = $('fearless-note');
+        if (note) note.style.display = dtype === 'fearless' && localMode === 'bo1' ? 'block' : 'none';
+        const desc = $('mode-desc');
+        if (desc) desc.textContent = MODE_DESC[dtype] || '';
+      };
+
+      window.confirmMode = async () => {
+        if (localDraft === 'fearless' && localMode === 'bo1') {toast('フィアレスはBO3/BO5専用です'); return;}
+        roomId = genId();
+        history.pushState({}, '', `?room=${roomId}`);
+        try {
+          await update(ref(db, `rooms/${roomId}`), {
+            'config/mode': localMode,
+            'config/draftType': localDraft,
+            createdAt: Date.now(),
+          });
+        } catch (e) {
+          toast('⚠️ Firebase ルールエラー。コンソールのルールを確認してください。');
+          console.error(e);
+          return;
+        }
+        show('s-mode', false);
+        showRoleScreen();
+      };
+
+
+
+      // ════════════════════════════════════════════════════
+      //  CHAMPION STATS
+      // ════════════════════════════════════════════════════
+      let totalDrafts = 0; // 集計用: 全ドラフト数
+
+      // stats を読み込む（ルームとは別の共有ノード）
+      async function loadStats() {
+        const snap = await get(ref(db, 'stats/meta'));
+        totalDrafts = snap.val()?.totalDrafts || 0;
+      }
+
+      // ドラフト完了時に BAN/PICK を記録
+      async function savePickBanStats(actionsObj, seq) {
+        if (!db) return;
+        for (const [i, s] of seq.entries()) {
+          const cid = actionsObj[i];
+          if (!cid) continue;
+          const key = s.a === 'ban' ? 'bans' : 'picks';
+          const r = ref(db, `stats/champs/${cid}/${key}`);
+          const cur = (await get(r)).val() || 0;
+          await set(r, cur + 1);
+        }
+        const metaRef = ref(db, 'stats/meta/totalDrafts');
+        const curTotal = (await get(metaRef)).val() || 0;
+        await set(metaRef, curTotal + 1);
+        totalDrafts = curTotal + 1;
+      }
+      // インクリメント形式に変更
+      const champUpdates = {};
+      seq.forEach((s, i) => {
+        const cid = actionsObj[i];
+        if (!cid) return;
+        const key = s.a === 'ban' ? 'bans' : 'picks';
+        champUpdates[cid] = champUpdates[cid] || {};
+        champUpdates[cid][key] = (champUpdates[cid][key] || 0) + 1;
+      });
+      const batch = {};
+      Object.entries(champUpdates).forEach(([cid, d]) => {
+        if (d.bans) batch[`stats/champs/${cid}/bans`] = {'.sv': 'timestamp'}; // 後でtransaction
+        if (d.picks) batch[`stats/champs/${cid}/picks`] = {'.sv': 'timestamp'};
+      });
+      // Firebase transaction でインクリメント
+      for (const [cid, d] of Object.entries(champUpdates)) {
+        if (d.bans) {
+          const r = ref(db, `stats/champs/${cid}/bans`);
+          const cur = (await get(r)).val() || 0;
+          await set(r, cur + d.bans);
+        }
+        if (d.picks) {
+          const r = ref(db, `stats/champs/${cid}/picks`);
+          const cur = (await get(r)).val() || 0;
+          await set(r, cur + d.picks);
+        }
+      }
+      // totalDrafts インクリメント
+      const metaRef = ref(db, 'stats/meta/totalDrafts');
+      const curTotal = (await get(metaRef)).val() || 0;
+      await set(metaRef, curTotal + 1);
+      totalDrafts = curTotal + 1;
+
+      // 勝者確定時に wins/losses を記録
+      async function saveWinStats(winTeam, actionsObj, seq) {
+        if (!db) return;
+        for (const [i, s] of seq.entries()) {
+          if (s.a !== 'pick') continue;
+          const cid = actionsObj[i];
+          if (!cid) continue;
+          const won = s.t === winTeam;
+          const key = won ? 'wins' : 'losses';
+          const r = ref(db, `stats/champs/${cid}/${key}`);
+          const cur = (await get(r)).val() || 0;
+          await set(r, cur + 1);
+        }
+      }
+
+      // 統計を取得して表示
+      async function showPickStats(cid, slotEl) {
+        if (!db || !champMap[cid]) return;
+        const snap = await get(ref(db, `stats/champs/${cid}`));
+        const d = snap.val() || {};
+        const picks = d.picks || 0;
+        const bans = d.bans || 0;
+        const wins = d.wins || 0;
+        const losses = d.losses || 0;
+        const total = totalDrafts || 1;
+
+        const pickRate = Math.round(picks / total * 100);
+        const banRate = Math.round(bans / total * 100);
+        const winRate = picks > 0 ? Math.round(wins / picks * 100) : 0;
+
+        // 既存オーバーレイを削除
+        slotEl.querySelectorAll('.pick-stats-overlay').forEach(el => el.remove());
+
+        const ov = document.createElement('div');
+        ov.className = 'pick-stats-overlay';
+        ov.innerHTML = `
+    <div class="pso-name">${champMap[cid].name}</div>
+    <div class="pso-row">
+      <div class="pso-stat">
+        <div class="pso-val">${pickRate}%</div>
+        <div class="pso-lbl">PICK</div>
+      </div>
+      <div class="pso-sep"></div>
+      <div class="pso-stat">
+        <div class="pso-val">${banRate}%</div>
+        <div class="pso-lbl">BAN</div>
+      </div>
+      <div class="pso-sep"></div>
+      <div class="pso-stat">
+        <div class="pso-val">${winRate}%</div>
+        <div class="pso-lbl">WIN</div>
+      </div>
+    </div>
+  `;
+        slotEl.appendChild(ov);
+
+        // 4秒後にフェードアウトして削除
+        setTimeout(() => {
+          ov.classList.add('out');
+          setTimeout(() => ov.remove(), 400);
+        }, 4000);
+      }
+
+
+      // ── シリーズ管理 ──────────────────────────────────
+
+      function showDoneBar() {
+        const bar = $('done-bar');
+        if (!bar) return;
+        bar.classList.add('on');
+        const nextBtn = bar.querySelector('.btn-next');
+        if (nextBtn) {
+          // BO3/BO5 でシリーズ未決着ならボタン非表示（勝者選択で次のゲームへ移動）
+          nextBtn.style.display = (isBo() && !seriesDone) ? 'none' : '';
+        }
+      }
+
+      window.selectWinner = async (team) => {
+        const newScores = {blue: (seriesScores.blue || 0), red: (seriesScores.red || 0)};
+        newScores[team]++;
+        // 勝敗統計を保存
+        saveWinStats(team, actions, getSeq()).catch(console.error);
+        const tw = targetWins();
+        const sdone = newScores.blue >= tw || newScores.red >= tw;
+
+        // フィアレス: このゲームのPICKをゲーム別配列に追加
+        const newFU = {blue: [...(fearlessUsed.blue || [])], red: [...(fearlessUsed.red || [])]};
+        if (roomConfig.draftType === 'fearless') {
+          const gameBlue = [], gameRed = [];
+          getSeq().forEach((s, i) => {if (s.a === 'pick' && actions[i]) {if (s.t === 'blue') gameBlue.push(actions[i]); else gameRed.push(actions[i]);} });
+          newFU.blue.push(gameBlue);
+          newFU.red.push(gameRed);
+        }
+
+        if (sdone) {
+          // シリーズ終了
+          await update(ref(db, `rooms/${roomId}`), {scores: newScores, seriesDone: true, fearlessUsed: newFU});
+        } else {
+          // 負けたチームにサイド選択を促す（done 状態のままサイド選択待ち）
+          const loserTeam = team === 'blue' ? 'red' : 'blue';
+          await update(ref(db, `rooms/${roomId}`), {
+            scores: newScores,
+            sideSelectPending: true,
+            loser: loserTeam,
+            fearlessUsed: newFU,
+          });
+        }
+      };
+
+      // 負けたチームがサイドを選択
+      window.selectSide = async (side) => {
+        if (myRole !== (lastState?.loser)) return;
+        const ng = (currentGame || 1) + 1;
+        // side: 'blue'なら負けたチームが次にBlue、'red'ならRed
+        // blueFirstTeam を記録して次ゲームのサイドを確定
+        await update(ref(db, `rooms/${roomId}`), {
+          currentGame: ng,
+          nextBlue: side === 'blue' ? lastState?.loser : (lastState?.loser === 'blue' ? 'red' : 'blue'),
+          sideSelectPending: false,
+          loser: null,
+          step: 0,
+          actions: null,
+          started: false,
+          done: false,
+          hover: null,
+          bgmIndex: null,
+          'ready/blue': false,
+          'ready/red': false,
+          timerStart: null,
+        });
+        selected = null;
+        prevActionsLen = -1;
+        stopBgm();
+      };
+
+      // ── シリーズインジケーター描画 ──────────────────────
+      function renderSeriesIndicator() {
+        const wrap = $('series-wrap');
+        if (!wrap) return;
+        if (!isBo()) {wrap.classList.remove('on'); return;}
+        wrap.classList.add('on');
+        const lbl = $('sgame-lbl');
+        if (lbl) lbl.textContent = seriesDone ? 'SERIES END' : `GAME ${currentGame || 1}`;
+        const dotsEl = $('series-dots');
+        if (!dotsEl) return;
+        const tw = targetWins();
+        let html = '';
+        // Blue dots
+        for (let i = 0; i < tw; i++) {
+          html += `<div class="sdot${i < (seriesScores.blue || 0) ? ' bw' : ''}"></div>`;
+        }
+        html += '<div class="ssep"></div>';
+        // Red dots
+        for (let i = 0; i < tw; i++) {
+          html += `<div class="sdot${i < (seriesScores.red || 0) ? ' rw' : ''}"></div>`;
+        }
+        dotsEl.innerHTML = html;
+      }
+
+      // ── フィアレスパネル描画 ─────────────────────────────
+      function renderFearlessPanel() {
+        const fpb = $('fp-blue'), fpr = $('fp-red');
+        if (!fpb || !fpr) return;
+        const isFearless = roomConfig.draftType === 'fearless';
+        fpb.classList.toggle('visible', isFearless);
+        fpr.classList.toggle('visible', isFearless);
+        if (!isFearless) return;
+
+        // fearlessUsed はゲームごとの2D配列: [[g1c1,g1c2,...],[g2c1,...]]
+        const renderPanel = (el, gamesList) => {
+          el.innerHTML = '';
+          // Firebase はarrayをobjectに変換するため正規化
+          const rawList = Array.isArray(gamesList) ? gamesList : Object.values(gamesList || {});
+          const games = rawList.map(g => Array.isArray(g) ? g : (g && typeof g === 'object' ? Object.values(g) : [])).filter(g => g.length > 0);
+          games.forEach((champs, gi) => {
+            if (!champs || !champs.length) return;
+            const block = document.createElement('div');
+            block.className = 'fp-game-block';
+            const lbl = document.createElement('div');
+            lbl.className = 'fp-game-lbl';
+            lbl.textContent = `G${gi + 1}`;
+            block.appendChild(lbl);
+            const row = document.createElement('div');
+            row.className = 'fp-game-row';
+            champs.forEach(id => {
+              if (!champMap[id]) return;
+              const w = document.createElement('div');
+              w.className = 'fp-champ-wrap';
+              w.title = champMap[id].name;
+              const img = document.createElement('img');
+              img.src = champMap[id].img;
+              img.className = 'fp-champ';
+              w.appendChild(img);
+              row.appendChild(w);
+            });
+            block.appendChild(row);
+            el.appendChild(block);
+            // ゲーム間の区切り
+            if (gi < games.length - 1) {
+              const div = document.createElement('div');
+              div.className = 'fp-divider';
+              el.appendChild(div);
+            }
+          });
+        };
+        renderPanel(fpb, fearlessUsed.blue || []);
+        renderPanel(fpr, fearlessUsed.red || []);
+      }
+
+      // ── シリーズ完了ドーバー ─────────────────────────────
+      // seriesDone になったら done-bar のラベルを書き換える
+      // render() の done 処理に割り込み
+      const _origDoneBarCheck = () => {
+        const db_el = $('done-bar');
+        if (!db_el || !db_el.classList.contains('on')) return;
+        const lbl = $('done-bar') && db_el.querySelector('.done-bar-label');
+        const nextBtn = $('btn-next');
+        if (isBo()) {
+          // BO時: seriesDone になるまで「次のゲーム」を隠す
+          if (nextBtn) nextBtn.style.display = seriesDone ? '' : 'none';
+          if (seriesDone && lbl) {
+            const winner = (seriesScores.blue || 0) > (seriesScores.red || 0) ? '🔵 Blue' : '🔴 Red';
+            lbl.textContent = `${winner} WIN  ${seriesScores.blue || 0} - ${seriesScores.red || 0}`;
+          }
+        } else {
+          // BO1: 常に表示
+          if (nextBtn) nextBtn.style.display = '';
+        }
+      };
+      // render後に呼ぶ
+      const _origRender = window._render || null;
+
+      window.goNew = async () => {
+        const nextId = genId();
+        // nextRoom を書き込む → 全員が検知してリダイレクト
+        if (db && roomId) {
+          try {await update(ref(db, `rooms/${roomId}`), {nextRoom: nextId});} catch { }
+          // 少し待ってから旧ルームを削除
+          setTimeout(async () => {
+            try {await remove(ref(db, `rooms/${roomId}`));} catch { }
+          }, 2000);
+        }
+        location.href = `?room=${nextId}`;
+      };
+
+      function loadConfig() {try {return JSON.parse(localStorage.getItem('lol-fb-cfg') || 'null');} catch {return null;} }
+      window.saveFirebaseConfig = () => {
+        const v = k => $(k).value.trim();
+        const c = (s, key) => s.replace(new RegExp(`^${key}:\\s*["']?|["']?,?$`, 'g'), '');
+        const apiKey = c(v('fc-apikey'), 'apiKey'), authDomain = c(v('fc-authdom'), 'authDomain');
+        const databaseURL = c(v('fc-dburl'), 'databaseURL'), projectId = c(v('fc-projectid'), 'projectId');
+        if (!apiKey || !databaseURL) {toast('apiKey と databaseURL は必須です'); return;}
+        const cfg = {apiKey, authDomain, databaseURL, projectId};
+        localStorage.setItem('lol-fb-cfg', JSON.stringify(cfg)); startApp(cfg);
+      };
+
+      async function init() {
+        for (const loc of ['ja_JP', 'en_US']) {
+          if (Object.keys(champMap).length) break;
+          try {
+            const v = await fetch('https://ddragon.leagueoflegends.com/api/versions.json');
+            const vs = await v.json(); ddVer = vs[0];
+            const r = await fetch(`https://ddragon.leagueoflegends.com/cdn/${ddVer}/data/${loc}/champion.json`);
+            const d = await r.json();
+            Object.values(d.data).forEach(c => {champMap[c.id] = {name: c.name, img: `https://ddragon.leagueoflegends.com/cdn/${ddVer}/img/champion/${c.image.full}`, load: `https://ddragon.leagueoflegends.com/cdn/img/champion/loading/${c.id}_0.jpg`};});
+          } catch { }
+        }
+        show('s-load', false);
+        // Firebase config 埋め込み済み
+        startApp({
+          apiKey: "AIzaSyChsCU2MgmHrniBQ8ERrk0jxXco6oR-oLU",
+          authDomain: "draft-test-f5065.firebaseapp.com",
+          databaseURL: "https://draft-test-f5065-default-rtdb.asia-southeast1.firebasedatabase.app",
+          projectId: "draft-test-f5065"
+        });
+      }
+
+      function startApp(cfg) {
+        show('s-setup', false);
+        try {const app = initializeApp(cfg); db = getDatabase(app);}
+        catch (e) {toast('Firebase エラー: ' + e.message); show('s-setup'); return;}
+        const p = new URLSearchParams(location.search), urlRoom = p.get('room');
+        if (urlRoom) {roomId = urlRoom.toUpperCase(); showRoleScreen();}
+        else show('s-lobby');
+      }
+
+      window.createRoom = () => {show('s-lobby', false); show('s-mode');};
+      window.joinInput = () => {const c = $('join-inp').value.trim().toUpperCase(); if (!c) {toast('ルームコードを入力してください'); return;} roomId = c; history.pushState({}, '', `?room=${roomId}`); show('s-lobby', false); showRoleScreen();};
+
+      async function showRoleScreen() {
+        $('role-code').textContent = roomId; show('s-role');
+
+        // createdAt チェック: 24時間以上経過していたら自動削除して新ルームへ
+        const snap = await get(ref(db, `rooms/${roomId}/createdAt`));
+        const createdAt = snap.val();
+        if (createdAt && Date.now() - createdAt > 8 * 60 * 60 * 1000) {
+          await remove(ref(db, `rooms/${roomId}`));
+          toast('このルームは期限切れです。新しいルームを作成しました。');
+          setTimeout(() => {roomId = genId(); history.pushState({}, '', `?room=${roomId}`); showRoleScreen();}, 1500);
+          return;
+        }
+        // 初回アクセス時に createdAt を書き込む
+        if (!createdAt) {await set(ref(db, `rooms/${roomId}/createdAt`), Date.now());}
+        // config を読み込む
+        const cfgSnap = await get(ref(db, `rooms/${roomId}/config`));
+        if (cfgSnap.val()) roomConfig = cfgSnap.val();
+
+        onValue(ref(db, `rooms/${roomId}/roles`), snap => {const r = snap.val() || {}; $('rc-blue').classList.toggle('taken', !!r.blue); $('ra-blue').textContent = r.blue ? '使用中' : '利用可能'; $('rc-red').classList.toggle('taken', !!r.red); $('ra-red').textContent = r.red ? '使用中' : '利用可能';});
+      }
+      window.pickRole = async role => {
+        if (role === 'blue' || role === 'red') {
+          const snap = await get(ref(db, `rooms/${roomId}/roles/${role}`));
+          if (snap.val()) {toast(`${role === 'blue' ? 'Blue' : 'Red'} Side はすでに使用中です`); return;}
+          await set(ref(db, `rooms/${roomId}/roles/${role}`), true);
+          // 切断時にロールを自動解放（ブラウザを閉じても解放される）
+          onDisconnect(ref(db, `rooms/${roomId}/roles/${role}`)).remove();
+          // 切断時に hover もクリア
+          onDisconnect(ref(db, `rooms/${roomId}/hover`)).remove();
+        }
+        myRole = role; show('s-role', false); initDraft();
+      };
+
+      function initDraft() {
+        show('s-draft', true);
+        if (myRole === 'blue') $('bans-glow-blue').classList.add('on');
+        else if (myRole === 'red') $('bans-glow-red').classList.add('on');
+        loadStats().catch(console.error); // 統計読み込み
+
+        buildPickSlots(); buildBanSlots(); buildChampGrid();
+        onValue(ref(db, `rooms/${roomId}`), snap => {
+          const data = snap.val() || {};
+          // 次のルームへの移動指示があればリダイレクト（全員共通）
+          if (data.nextRoom && data.nextRoom !== roomId) {
+            location.href = `?room=${data.nextRoom}`;
+            return;
+          }
+          // リセット検知
+          if (!data.started && !data.done) {
+            const db_el = $('done-bar'); if (db_el) db_el.classList.remove('on');
+            const to = $('timeout-ov'); if (to) to.classList.remove('on');
+            selected = null; prevActionsLen = -1;
+          }
+          // nextBlue: 次のゲームのサイドをmyRoleに反映（1回だけ適用して即削除）
+          if (data.nextBlue && !data.started && (myRole === 'blue' || myRole === 'red')) {
+            const nextRole = (data.nextBlue === myRole) ? 'blue' : 'red';
+            myRole = nextRole;
+            if (myRole === 'blue') {$('bans-glow-blue').classList.add('on'); $('bans-glow-red').classList.remove('on');}
+            else {$('bans-glow-red').classList.add('on'); $('bans-glow-blue').classList.remove('on');}
+            // 適用後すぐにFirebaseから削除して再適用を防ぐ
+            update(ref(db, `rooms/${roomId}`), {nextBlue: null}).catch(() => { });
+          }
+          curStep = data.step || 0; actions = data.actions || {}; started = data.started || false; readyState = data.ready || {blue: false, red: false};
+          if (data.config) roomConfig = data.config;
+          currentGame = data.currentGame || 1;
+          seriesScores = data.scores || {blue: 0, red: 0};
+          fearlessUsed = data.fearlessUsed || {blue: [], red: []};
+          seriesDone = data.seriesDone || false;
+          // BGMインデックス同期: bgmIndexが来たらまだ再生していなければ再生
+          if (typeof data.bgmIndex === 'number') {
+            if (bgmNodes.length === 0 && actx && !MUTED.banBgm) {
+              _launchBgmByIndex(data.bgmIndex);
+            }
+          } else if (!data.started && bgmNodes.length > 0) {
+            stopBgm(); // ゲームリセット時にBGM停止
+          }
+          // sideSelectPending は lastState 経由で参照するので不要
+          const cur = getSeq()[curStep];
+          if (cur && myRole === cur.t) {
+            // 自分のターン: Firebase hover より local selected を優先
+          } else {
+            selected = data.hover || null;
+          }
+          lastState = data; render(data);
+        });
+      }
+
+      function buildPickSlots() {
+        ['blue', 'red'].forEach(tm => {
+          const el = $(`tp-${tm}`); el.innerHTML = '';
+          for (let i = 0; i < 5; i++) {
+            const d = document.createElement('div');
+            d.className = 'pick-slot-h'; d.id = `ps-${tm}-${i}`;
+            d.innerHTML = `<div class="pick-art" id="pa-${tm}-${i}"></div><div class="pick-fade"></div><div class="pick-empty" id="pe-${tm}-${i}"><svg width="32" height="32" viewBox="0 0 40 40" fill="none" stroke="white" stroke-width="2"><circle cx="20" cy="14" r="9"/><path d="M4 38c0-10 32-10 32 0"/></svg></div><div class="pick-name" id="pn-${tm}-${i}"></div><div class="pick-num">P${i + 1}</div>`;
+            el.appendChild(d);
+          }
+        });
+      }
+
+      function buildBanSlots() {
+        ['blue', 'red'].forEach(tm => {const el = $(`br-${tm}`); el.innerHTML = ''; for (let i = 0; i < 5; i++) el.innerHTML += `<div class="ban-sl" id="bs-${tm}-${i}"><span class="be">⊘</span><div class="ban-x"></div></div>`;});
+      }
+
+      function buildChampGrid() {
+        const grid = $('cg'); grid.innerHTML = '';
+        Object.entries(champMap).sort((a, b) => a[1].name.localeCompare(b[1].name, 'ja')).forEach(([id, c]) => {
+          const d = document.createElement('div');
+          d.className = 'cc'; d.id = `cc-${id}`; d.dataset.id = id; d.dataset.nm = c.name.toLowerCase(); d.dataset.roles = (ROLES[id] || []).join(' ');
+          d.innerHTML = `<img src="${c.img}" alt="${c.name}" loading="lazy"><div class="cn">${c.name}</div>`;
+          d.addEventListener('click', () => clickChamp(id));
+          grid.appendChild(d);
+        });
+      }
+
+      function render(data) {
+        const done = data.done || false;
+        const used = new Set(Object.values(actions).filter(Boolean));
+        // 確定済みチャンプが selected に残っていたら即クリア（タイミングバグ防止）
+        if (selected && used.has(selected)) {selected = null;}
+        // SFX: 新しいアクションが追加されたとき
+        const curActionsLen = Object.keys(actions).length;
+        if (started && curActionsLen > prevActionsLen && prevActionsLen >= 0 && actx) {
+          const lastIdx = curActionsLen - 1;
+          const lastSeq = getSeq()[lastIdx];
+          if (lastSeq) {if (lastSeq.a === 'ban') playBanSfx(); else playPickSfx();}
+        }
+        prevActionsLen = curActionsLen;
+        let bBan = 0, rBan = 0, bPick = 0, rPick = 0;
+        const CUR_SEQ = getSeq();
+        CUR_SEQ.forEach((s, i) => {
+          const cid = actions[i], isAct = (i === curStep && !done);
+          if (s.a === 'ban') {
+            if (s.t === 'blue') {updBan('blue', bBan, cid, isAct); bBan++;}
+            else {updBan('red', rBan, cid, isAct); rBan++;}
+          } else {
+            if (s.t === 'blue') {updPick('blue', bPick, cid, isAct); bPick++;}
+            else {updPick('red', rPick, cid, isAct); rPick++;}
+          }
+        });
+
+        // Firebase は配列をオブジェクト({0:[...],1:[...]})に変換するので Object.values で対応
+        const fearlessAll = getFearlessAll();
+        document.querySelectorAll('.cc').forEach(el => {
+          const id = el.dataset.id;
+          el.classList.remove('used', 'nc', 'sel');
+          if (used.has(id) || fearlessAll.has(id)) {el.classList.add('used'); return;}
+          if (!started || done) {el.classList.add('nc'); return;}
+          if (id === selected) el.classList.add('sel');
+          const cur = getSeq()[curStep]; if (!cur || myRole !== cur.t) el.classList.add('nc');
+        });
+
+        const ph = $('dh-phase'), st = $('dh-status');
+        renderSeriesIndicator();
+        renderFearlessPanel();
+        if (!started) {ph.textContent = '—'; st.textContent = 'WAITING FOR DRAFTER'; st.className = 'dh-status'; $('bans-lbl').textContent = 'BANS';}
+        else if (done) {
+          ph.textContent = 'COMPLETED'; st.textContent = 'DRAFT COMPLETE'; st.className = 'dh-status'; $('bans-lbl').textContent = 'BANS';
+          if (!$('done-bar').classList.contains('on')) {
+            if (actx) playFinalSfx();
+            // BAN/PICK統計を保存（最初にdoneになった人だけ書き込む）
+            if (myRole === 'blue' || myRole === 'red') {
+              savePickBanStats(actions, getSeq()).catch(console.error);
+            }
+          }
+          $('done-bar').classList.add('on');
+        }
+        else {
+          const cur = getSeq()[curStep];
+          ph.textContent = getPhlbl()[curStep];
+          st.textContent = `${cur.t === 'blue' ? '🔵 Blue Side' : '🔴 Red Side'}  ${cur.a === 'ban' ? 'BAN中' : 'PICK中'}`;
+          st.className = `dh-status ${cur.t === 'blue' ? 'bt' : 'rt'}`;
+          $('bans-lbl').textContent = cur.a === 'ban' ? '— BANNING —' : 'BANS';
+        }
+        renderAC(done);
+        // タイマー制御（全員共通）
+        if (!started || done) {
+          stopTimer();
+        } else {
+          const cur = getSeq()[curStep];
+          const ts = data.timerStart || null;
+          if (cur && timerStep !== curStep && ts) {
+            startTimer(curStep, cur.t, ts);
+          }
+        }
+        _origDoneBarCheck();
+      }
+
+
+      function updBan(tm, i, cid, isActive) {
+        const el = $(`bs-${tm}-${i}`); if (!el) return;
+        const ghostId = (isActive && !cid && selected) ? selected : null;
+        const displayId = cid || ghostId;
+        const isGhost = !cid && !!ghostId;
+        let cls = `ban-sl${isActive && !isGhost ? ' act' : ''}${isGhost ? ' ghost' : ''}${cid ? ' banned' : ''}`;
+        el.className = cls;
+        if (displayId && champMap[displayId]) el.innerHTML = `<img src="${champMap[displayId].img}" title="${champMap[displayId].name}" style="${isGhost ? 'opacity:.75' : ''}"><div class="ban-x"></div>`;
+        else el.innerHTML = `<span class="be">&#x2296;</span><div class="ban-x"></div>`;
+      }
+
+      function updPick(tm, i, cid, isActive) {
+        const sl = $(`ps-${tm}-${i}`), pa = $(`pa-${tm}-${i}`), pe = $(`pe-${tm}-${i}`), pn = $(`pn-${tm}-${i}`);
+        if (!sl) return;
+
+        // ゴーストプレビュー: アクティブ & 未確定 & 選択済みのとき
+        const ghostId = (isActive && !cid && selected) ? selected : null;
+        const displayId = cid || ghostId;
+        const isGhost = !cid && !!ghostId;
+
+        const prevCls = sl.className;
+        let cls = 'pick-slot-h';
+        if (cid) cls += ' filled';
+        else if (isGhost) cls += ' ghost';
+        else if (isActive) cls += ' active-slot';
+        const wasEmpty = !prevCls.includes('filled');
+        if (cid && wasEmpty) {
+          cls += ' flash'; setTimeout(() => sl.classList.remove('flash'), 600);
+          // 統計オーバーレイ表示
+          setTimeout(() => showPickStats(cid, sl), 350);
+        }
+        sl.className = cls;
+
+        if (displayId && champMap[displayId]) {
+          pa.style.backgroundImage = `url('${champMap[displayId].load}')`;
+          if (displayId === 'Camille') {
+            pa.style.backgroundPosition = '72% 0%';
+            pa.style.backgroundSize = '115%';
+          } else {
+            pa.style.backgroundPosition = '50% 0%';
+            pa.style.backgroundSize = '135%';
+          }
+          pe.style.display = 'none';
+          pn.textContent = champMap[displayId].name;
+        } else {
+          pa.style.backgroundImage = ''; pa.style.backgroundPosition = ''; pa.style.backgroundSize = ''; pe.style.display = ''; pn.textContent = '';
+        }
+      }
+
+      function renderAC(done) {
+        const ac = $('ac');
+        if (!started && !done) {
+          const bOk = readyState.blue, rOk = readyState.red, mine = myRole === 'blue' ? bOk : myRole === 'red' ? rOk : true;
+          ac.innerHTML = myRole === 'spectator'
+            ? `<div class="wait-msg">観戦中<br>両チームが Ready で開始</div>`
+            : `<div class="rw"><div class="rs-row"><span class="${bOk ? 'ok' : ''}">🔵 ${bOk ? '✓ Ready' : '待機'}</span><span class="${rOk ? 'ok' : ''}">🔴 ${rOk ? '✓ Ready' : '待機'}</span></div><button class="ready-btn" ${mine ? 'disabled' : ''} onclick="sendReady()">${mine ? 'Ready ✓' : 'Ready'}</button></div>`;
+          return;
+        }
+        if (done) {
+          ac.innerHTML = '';
+          // 勝者選択エリアの表示制御
+          const wa = $('winner-area');
+          const ssa = $('side-select-area');
+          if (wa) {
+            // 勝者選択: BO かつ未決着 かつ自分のターン（どちらかのプレイヤー）
+            const showWinner = isBo() && !seriesDone && !lastState?.sideSelectPending && (myRole === 'blue' || myRole === 'red');
+            wa.style.display = showWinner ? 'flex' : 'none';
+          }
+          // サイド選択: 負けたチームにのみ表示
+          if (ssa) {
+            const ssp = lastState?.sideSelectPending;
+            const loser = lastState?.loser;
+            const showSide = ssp && (myRole === loser);
+            ssa.style.display = showSide ? 'flex' : 'none';
+            if (ssa.style.display === 'flex' && wa) wa.style.display = 'none';
+          }
+          return;
+        }
+        // done でないとき winner/side エリアを隠す
+        const _wa2 = $('winner-area'), _ssa2 = $('side-select-area');
+        if (_wa2) _wa2.style.display = 'none';
+        if (_ssa2) _ssa2.style.display = 'none';
+
+        const cur = SEQ[curStep];
+        if (myRole === 'spectator' || myRole !== cur.t) {
+          ac.innerHTML = `<div class="wait-msg">${cur.t === 'blue' ? '🔵 Blue' : '🔴 Red'}<br>${cur.a === 'ban' ? 'BAN' : 'PICK'} を待っています...</div>`;
+          return;
+        }
+        const used = new Set(Object.values(actions).filter(Boolean));
+        const champ = (selected && !used.has(selected)) ? champMap[selected] : null;
+        ac.innerHTML = `
+    <div class="prev-box">
+      ${champ ? `<img src="${champ.img}" alt="${champ.name}"><span class="prev-name">${champ.name}</span>` : `<span class="prev-empty">${cur.a === 'ban' ? 'BAN' : 'PICK'}するチャンプを選択</span>`}
+    </div>
+    <button class="conf-btn" ${champ ? '' : 'disabled'} onclick="confirmAction()">
+      ${cur.a === 'ban' ? 'BAN 確定' : 'PICK 確定'}
+    </button>`;
+      }
+
+
+      function getFearlessAll() {
+        const normFU = arr => {
+          if (!arr) return [];
+          const v = Array.isArray(arr) ? arr : Object.values(arr);
+          return v.flatMap(x => Array.isArray(x) ? x : (typeof x === 'object' && x ? Object.values(x) : [x]));
+        };
+        return new Set([...normFU(fearlessUsed.blue), ...normFU(fearlessUsed.red)]);
+      }
+
+
+      function playFinalSfx() {
+        const ctx = ensureActx();
+        if (!customBuffers.finalSfx) return;
+        const fadeMs = 5000; // BGMを5秒かけてフェードアウト
+
+        // 現在のBGMをフェードアウト（停止はfadeMs後）
+        if (bgmGainNode) {
+          try {
+            bgmGainNode.gain.setValueAtTime(bgmGainNode.gain.value, ctx.currentTime);
+            bgmGainNode.gain.linearRampToValueAtTime(0, ctx.currentTime + fadeMs / 1000);
+          } catch { }
+        }
+        const oldNodes = [...bgmNodes];
+        bgmPhase = null;
+        if (bgmScheduler) {clearTimeout(bgmScheduler); bgmScheduler = null;}
+        // fadeMs後に古いBGMノードを停止
+        setTimeout(() => {
+          oldNodes.forEach(n => {try {if (n.stop) n.stop(); if (n.disconnect) n.disconnect();} catch { } });
+        }, fadeMs);
+
+        // finalizationはすぐ再生開始（BGMフェードアウトと同時）
+        bgmNodes = []; bgmGainNode = null;
+        const src = ctx.createBufferSource();
+        src.buffer = customBuffers.finalSfx;
+        src.loop = false;
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0, ctx.currentTime);
+        g.gain.linearRampToValueAtTime(VOLS.banBgm, ctx.currentTime + 0.8);
+        src.connect(g); g.connect(ctx.destination);
+        src.start();
+        bgmGainNode = g; bgmNodes = [src, g];
+      }
+
+      function clickChamp(id) {
+        if (!started || curStep >= 20) return;
+        const cur = getSeq()[curStep]; if (!cur || myRole !== cur.t) return;
+        const used = new Set(Object.values(actions).filter(Boolean)); if (used.has(id)) return;
+        if (roomConfig.draftType === 'fearless' && getFearlessAll().has(id)) return;
+        selected = id;
+        document.querySelectorAll('.cc').forEach(el => el.classList.toggle('sel', el.dataset.id === id));
+        // Firebase に hover を書き込む → 相手にも見える
+        update(ref(db, `rooms/${roomId}`), {hover: id});
+      }
+
+      window.confirmAction = async () => {
+        if (!selected || curStep >= 20) return;
+        const cur = getSeq()[curStep]; if (!cur || myRole !== cur.t) return;
+        const used = new Set(Object.values(actions).filter(Boolean));
+        if (used.has(selected)) {toast('そのチャンピオンはすでに使われています'); return;}
+        if (roomConfig.draftType === 'fearless' && getFearlessAll().has(selected)) {toast('このチャンピオンはフィアレスBANされています'); selected = null; return;}
+        const ns = curStep + 1;
+        const seqLen = getSeq().length;
+        await update(ref(db, `rooms/${roomId}`), {[`actions/${curStep}`]: selected, step: ns, done: ns >= seqLen, hover: null, timerStart: Date.now()});
+        selected = null;
+      };
+
+      window.sendReady = async () => {
+        if (!myRole || myRole === 'spectator') return;
+        const updates = {[`ready/${myRole}`]: true};
+        const snap = await get(ref(db, `rooms/${roomId}/ready`));
+        const cur = snap.val() || {}, other = myRole === 'blue' ? 'red' : 'blue';
+        if (cur[other]) {
+          updates.started = true;
+          updates.timerStart = Date.now();
+          // 最後にReadyを押した人がbgmIndexを1度だけ決定
+          const pool = customBuffers.bgmList;
+          if (pool && pool.length > 0) {
+            updates.bgmIndex = Math.floor(Math.random() * pool.length);
+          }
+        }
+        await update(ref(db, `rooms/${roomId}`), updates);
+      };
+
+      window.setF = role => {roleFilter = (roleFilter === role && role !== 'all') ? 'all' : role; document.querySelectorAll('.rtab').forEach(el => el.classList.remove('on')); $(`tab-${roleFilter}`).classList.add('on'); applyF();};
+      window.applyF = () => {const q = $('sb').value.toLowerCase(); document.querySelectorAll('.cc').forEach(el => {const nm = el.dataset.nm.includes(q), ro = roleFilter === 'all' || (el.dataset.roles || '').includes(roleFilter); el.style.display = (nm && ro) ? '' : 'none';});};
+
+
+      // ══════════════════════════════════════════════════
+      //  AUDIO ENGINE (Web Audio API)
+      // ══════════════════════════════════════════════════
+      let actx = null;
+      let bgmNodes = [];       // currently playing BGM oscillators/gainNodes
+      let bgmPhase = null;     // 'ban' | 'pick' | null
+      let bgmGainNode = null;
+      let bgmScheduler = null; // setTimeout handle
+
+      const MUTED = {banBgm: false, pickBgm: false, banSfx: false, pickSfx: false};
+      const VOLS = {banBgm: 0.25, pickBgm: 0.25, banSfx: 0.40, pickSfx: 1.0};
+      const MAX_VOLS = {banBgm: 0.50, pickBgm: 0.50, banSfx: 0.80, pickSfx: 2.0}; // slider100の最大値
+
+      function ensureActx() {
+        if (!actx) {actx = new (window.AudioContext || window.webkitAudioContext)();}
+        if (actx.state === 'suspended') actx.resume();
+        return actx;
+      }
+
+      // ── BGM ──────────────────────────────────────────
+      // startBgm は廃止。BGMはbgmIndex(Firebase)経由で全員同期再生
+      function startBgm(phase) {bgmPhase = phase;} // 互換用空関数
+
+      function _launchBgmByIndex(idx) {
+        const ctx = ensureActx();
+        bgmPhase = 'bgm'; // スライダー制御のためフラグをセット
+        const vol = VOLS.banBgm;
+        const pool = customBuffers.bgmList;
+        if (!pool || !pool[idx]) return;
+        const src = ctx.createBufferSource();
+        src.buffer = pool[idx];
+        src.loop = true;
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0, ctx.currentTime);
+        g.gain.linearRampToValueAtTime(vol, ctx.currentTime + 1.2);
+        src.connect(g); g.connect(ctx.destination);
+        src.start();
+        bgmGainNode = g; bgmNodes = [src, g];
+      }
+
+      function _launchBgm(phase) {
+        const ctx = ensureActx();
+        const bgmKey = phase === 'ban' ? 'banBgm' : 'pickBgm';
+        const vol = VOLS[bgmKey];
+        // カスタム音源があればそれを使う
+        // bgmList からランダム選択（リストがあれば優先）
+        const bgmPool = customBuffers.bgmList;
+        const bgmBuf = bgmPool && bgmPool.length > 0
+          ? bgmPool[Math.floor(Math.random() * bgmPool.length)]
+          : customBuffers[bgmKey];
+        if (bgmBuf) {
+          const src = ctx.createBufferSource();
+          src.buffer = bgmBuf;
+          src.loop = true;
+          const g = ctx.createGain();
+          g.gain.setValueAtTime(0, ctx.currentTime);
+          g.gain.linearRampToValueAtTime(vol, ctx.currentTime + 1.2);
+          src.connect(g); g.connect(ctx.destination);
+          src.start();
+          bgmGainNode = g; bgmNodes = [src, g];
+          return;
+        }
+
+        const master = ctx.createGain();
+        master.gain.setValueAtTime(0, ctx.currentTime);
+        master.gain.linearRampToValueAtTime(vol, ctx.currentTime + 1.5); // フェードイン
+        master.connect(ctx.destination);
+        bgmGainNode = master;
+        bgmNodes = [master];
+
+        if (phase === 'ban') {
+          // ── BAN BGM: 不穏なドローン ──
+          // 低音ドローン A1=55Hz (sawtooth + lowpass)
+          const bass = ctx.createOscillator();
+          bass.type = 'sawtooth';
+          bass.frequency.setValueAtTime(55, ctx.currentTime);
+          const bassF = ctx.createBiquadFilter();
+          bassF.type = 'lowpass'; bassF.frequency.value = 180; bassF.Q.value = 2;
+          const bassG = ctx.createGain(); bassG.gain.value = 0.55;
+          bass.connect(bassF); bassF.connect(bassG); bassG.connect(master);
+          bass.start(); bgmNodes.push(bass, bassF, bassG);
+
+          // LFO でトレモロ（3Hz）
+          const lfo = ctx.createOscillator();
+          lfo.type = 'sine'; lfo.frequency.value = 2.8;
+          const lfoG = ctx.createGain(); lfoG.gain.value = 0.18;
+          const mid = ctx.createOscillator();
+          mid.type = 'sine'; mid.frequency.value = 110; // A2
+          const midG = ctx.createGain(); midG.gain.value = 0.3;
+          lfo.connect(lfoG); lfoG.connect(midG.gain);
+          mid.connect(midG); midG.connect(master);
+          lfo.start(); mid.start();
+          bgmNodes.push(lfo, lfoG, mid, midG);
+
+          // テンション高域（E4=329Hz 微弱）
+          const hi = ctx.createOscillator();
+          hi.type = 'sine'; hi.frequency.value = 164.8;
+          const hiG = ctx.createGain(); hiG.gain.value = 0.06;
+          const hiVib = ctx.createOscillator(); hiVib.frequency.value = 5.5;
+          const hiVibG = ctx.createGain(); hiVibG.gain.value = 1.2;
+          hiVib.connect(hiVibG); hiVibG.connect(hi.frequency);
+          hi.connect(hiG); hiG.connect(master);
+          hi.start(); hiVib.start();
+          bgmNodes.push(hi, hiG, hiVib, hiVibG);
+
+        } else {
+          // ── PICK BGM: 緊張感のある戦略的ドローン ──
+          // D2=73.4Hz ベース
+          const bass = ctx.createOscillator();
+          bass.type = 'triangle'; bass.frequency.value = 73.4;
+          const bassG = ctx.createGain(); bassG.gain.value = 0.45;
+          bass.connect(bassG); bassG.connect(master);
+          bass.start(); bgmNodes.push(bass, bassG);
+
+          // 5th harmony A2=110Hz
+          const fifth = ctx.createOscillator();
+          fifth.type = 'sine'; fifth.frequency.value = 110;
+          const fifthG = ctx.createGain(); fifthG.gain.value = 0.22;
+          fifth.connect(fifthG); fifthG.connect(master);
+          fifth.start(); bgmNodes.push(fifth, fifthG);
+
+          // リズム的パルス: GainをLFOで揺らす（1Hz）
+          const pulse = ctx.createOscillator();
+          pulse.type = 'sawtooth'; pulse.frequency.value = 146.8; // D3
+          const pulseF = ctx.createBiquadFilter();
+          pulseF.type = 'bandpass'; pulseF.frequency.value = 400; pulseF.Q.value = 3;
+          const pulseLfo = ctx.createOscillator(); pulseLfo.frequency.value = 1.0;
+          const pulseLfoG = ctx.createGain(); pulseLfoG.gain.value = 0.12;
+          const pulseG = ctx.createGain(); pulseG.gain.value = 0.14;
+          pulseLfo.connect(pulseLfoG); pulseLfoG.connect(pulseG.gain);
+          pulse.connect(pulseF); pulseF.connect(pulseG); pulseG.connect(master);
+          pulse.start(); pulseLfo.start();
+          bgmNodes.push(pulse, pulseF, pulseLfo, pulseLfoG, pulseG);
+
+          // 高域ハーモニクス
+          const hi = ctx.createOscillator();
+          hi.type = 'sine'; hi.frequency.value = 293.6; // D4
+          const hiLfo = ctx.createOscillator(); hiLfo.frequency.value = 0.4;
+          const hiLfoG = ctx.createGain(); hiLfoG.gain.value = 4;
+          const hiG = ctx.createGain(); hiG.gain.value = 0.07;
+          hiLfo.connect(hiLfoG); hiLfoG.connect(hi.frequency);
+          hi.connect(hiG); hiG.connect(master);
+          hi.start(); hiLfo.start();
+          bgmNodes.push(hi, hiG, hiLfo, hiLfoG);
+        }
+      }
+
+      function stopBgm() {
+        bgmPhase = null;
+        if (bgmScheduler) {clearTimeout(bgmScheduler); bgmScheduler = null;}
+        if (bgmGainNode) {
+          try {
+            const ctx = actx;
+            bgmGainNode.gain.setValueAtTime(bgmGainNode.gain.value, ctx.currentTime);
+            bgmGainNode.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.8);
+          } catch { }
+        }
+        const nodes = [...bgmNodes];
+        bgmNodes = []; bgmGainNode = null;
+        setTimeout(() => {
+          nodes.forEach(n => {try {if (n.stop) n.stop(); if (n.disconnect) n.disconnect();} catch { } });
+        }, 900);
+      }
+
+      function updateBgmVol() {
+        if (!bgmGainNode) return;
+        const vol = MUTED.banBgm ? 0 : VOLS.banBgm;
+        try {bgmGainNode.gain.linearRampToValueAtTime(vol, actx.currentTime + 0.3);} catch { }
+      }
+
+      // ── SFX ──────────────────────────────────────────
+
+      function playTickSfx() {
+        if (!actx) return;
+        if (customBuffers.timerTick) {
+          const src = actx.createBufferSource(); src.buffer = customBuffers.timerTick;
+          const g = actx.createGain(); g.gain.value = VOLS.banSfx; // banSfxの音量に合わせる
+          src.connect(g); g.connect(actx.destination); src.start(); return;
+        }
+        // フォールバック: 短いビープ
+        const t = actx.currentTime;
+        const o = actx.createOscillator(); o.type = 'sine'; o.frequency.value = 880;
+        const g = actx.createGain();
+        g.gain.setValueAtTime(0.18, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.08);
+        o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t + 0.1);
+      }
+
+      function playBanSfx() {
+        if (MUTED.banSfx) return;
+        const ctx = ensureActx();
+        const vol = VOLS.banSfx;
+        // カスタム音源があればそれを使う
+        if (customBuffers.banSfx) {
+          const src = ctx.createBufferSource(); src.buffer = customBuffers.banSfx;
+          const g = ctx.createGain(); g.gain.value = vol;
+          src.connect(g); g.connect(ctx.destination); src.start(); return;
+        }
+        const t = ctx.currentTime;
+
+        // 鈍い打撃音 + 下降トーン
+        const master = ctx.createGain();
+        master.gain.setValueAtTime(vol * 0.9, t);
+        master.gain.exponentialRampToValueAtTime(0.0001, t + 0.7);
+        master.connect(ctx.destination);
+
+        // ノイズバースト
+        const bufLen = ctx.sampleRate * 0.12;
+        const buf = ctx.createBuffer(1, bufLen, ctx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < bufLen; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufLen, 2);
+        const noise = ctx.createBufferSource();
+        noise.buffer = buf;
+        const noiseF = ctx.createBiquadFilter();
+        noiseF.type = 'bandpass'; noiseF.frequency.value = 180; noiseF.Q.value = 1.5;
+        const noiseG = ctx.createGain(); noiseG.gain.value = 0.7;
+        noise.connect(noiseF); noiseF.connect(noiseG); noiseG.connect(master);
+        noise.start(t); noise.stop(t + 0.12);
+
+        // 下降トーン 400→80Hz
+        const osc = ctx.createOscillator();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(400, t);
+        osc.frequency.exponentialRampToValueAtTime(60, t + 0.45);
+        const oscF = ctx.createBiquadFilter();
+        oscF.type = 'lowpass'; oscF.frequency.value = 600;
+        const oscG = ctx.createGain(); oscG.gain.value = 0.6;
+        osc.connect(oscF); oscF.connect(oscG); oscG.connect(master);
+        osc.start(t); osc.stop(t + 0.6);
+
+        // 低域打撃
+        const thud = ctx.createOscillator();
+        thud.type = 'sine';
+        thud.frequency.setValueAtTime(120, t);
+        thud.frequency.exponentialRampToValueAtTime(40, t + 0.18);
+        const thudG = ctx.createGain();
+        thudG.gain.setValueAtTime(vol * 1.2, t);
+        thudG.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
+        thud.connect(thudG); thudG.connect(ctx.destination);
+        thud.start(t); thud.stop(t + 0.3);
+      }
+
+      function playPickSfx() {
+        if (MUTED.pickSfx) return;
+        const ctx = ensureActx();
+        const vol = VOLS.pickSfx;
+        // カスタム音源があればそれを使う
+        if (customBuffers.pickSfx) {
+          const src = ctx.createBufferSource(); src.buffer = customBuffers.pickSfx;
+          const g = ctx.createGain(); g.gain.value = vol;
+          src.connect(g); g.connect(ctx.destination); src.start(); return;
+        }
+        const t = ctx.currentTime;
+
+        // 上昇チャイム
+        const master = ctx.createGain();
+        master.connect(ctx.destination);
+
+        // メインチャイム: 上昇アルペジオ
+        [[523.3, 0], [659.3, 0.07], [783.9, 0.14], [1046.5, 0.22]].forEach(([freq, dt]) => {
+          const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = freq;
+          const g = ctx.createGain();
+          g.gain.setValueAtTime(0, t + dt);
+          g.gain.linearRampToValueAtTime(vol * 0.55, t + dt + 0.03);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + dt + 0.55);
+          o.connect(g); g.connect(master);
+          o.start(t + dt); o.stop(t + dt + 0.6);
+        });
+
+        // ブライトな倍音
+        const o2 = ctx.createOscillator(); o2.type = 'triangle'; o2.frequency.value = 1760;
+        const g2 = ctx.createGain();
+        g2.gain.setValueAtTime(vol * 0.2, t + 0.22);
+        g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.65);
+        o2.connect(g2); g2.connect(master);
+        o2.start(t + 0.22); o2.stop(t + 0.7);
+
+        // リバーブ感：短いディレイ
+        const delay = ctx.createDelay(0.5); delay.delayTime.value = 0.18;
+        const delayG = ctx.createGain(); delayG.gain.value = 0.22;
+        master.connect(delay); delay.connect(delayG); delayG.connect(ctx.destination);
+      }
+
+      // ── UI コントロール ───────────────────────────────
+      window.toggleAudioPanel = () => {
+        ensureActx(); // ユーザー操作でAudioContext解禁
+        $('audio-panel').classList.toggle('on');
+      };
+
+
+      window.toggleMuteBgm = () => {
+        const next = !MUTED.banBgm;
+        MUTED.banBgm = MUTED.pickBgm = next;
+        const btn = $('mute-ban-bgm');
+        btn.textContent = next ? 'ON' : 'OFF';
+        btn.classList.toggle('muted', next);
+        updateBgmVol();
+        saveAudioPrefs();
+      };
+
+      window.setVol = (key, val) => {
+        VOLS[key] = Math.min(1.0, (val / 100) * (MAX_VOLS[key] || 1));
+        $(`vv-${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`).textContent = val;
+        if (key === 'banBgm' || key === 'pickBgm') updateBgmVol();
+        saveAudioPrefs();
+      };
+
+      window.toggleMute = (key) => {
+        MUTED[key] = !MUTED[key];
+        const btn = $(`mute-${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`);
+        btn.textContent = MUTED[key] ? 'ON' : 'OFF';
+        btn.classList.toggle('muted', MUTED[key]);
+        if (key === 'banBgm' || key === 'pickBgm') updateBgmVol();
+        saveAudioPrefs();
+      };
+
+      function saveAudioPrefs() {
+        localStorage.setItem('lol-audio', JSON.stringify({VOLS, MUTED}));
+      }
+      function loadAudioPrefs() {
+        try {
+          const p = JSON.parse(localStorage.getItem('lol-audio') || 'null');
+          if (!p) return;
+          Object.assign(VOLS, p.VOLS); Object.assign(MUTED, p.MUTED);
+          // スライダー・ボタンに反映
+          const map = {banBgm: 'ban-bgm', pickBgm: 'pick-bgm', banSfx: 'ban-sfx', pickSfx: 'pick-sfx'};
+          Object.entries(map).forEach(([k, id]) => {
+            const sl = $(`vol-${id}`); if (sl) sl.value = Math.round((VOLS[k] / (MAX_VOLS[k] || 1)) * 100);
+            const vv = $(`vv-${id}`); if (vv) vv.textContent = Math.round((VOLS[k] / (MAX_VOLS[k] || 1)) * 100);
+            const bt = $(`mute-${id}`);
+            if (bt) {bt.textContent = MUTED[k] ? 'ON' : 'OFF'; bt.classList.toggle('muted', MUTED[k]);}
+          });
+        } catch { }
+      }
+
+
+      // ── カスタム音源 ─────────────────────────────────
+      const customBuffers = {}; // key -> AudioBuffer
+      const customBgmNodes = {}; // key -> { source, gain }
+
+      window.loadCustomAudio = async (key, input) => {
+        const file = input.files[0]; if (!file) return;
+        const ctx = ensureActx();
+        const fnEl = $(`fn-${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`);
+        try {
+          const ab = await file.arrayBuffer();
+          const buf = await ctx.decodeAudioData(ab);
+          customBuffers[key] = buf;
+          if (fnEl) fnEl.textContent = file.name.replace(/\..*$/, '').slice(0, 10);
+          // BGM の場合: 再生中なら即差し替え
+          if ((key === 'banBgm' || key === 'pickBgm') && bgmPhase === (key === 'banBgm' ? 'ban' : 'pick')) {
+            stopBgm(); startBgm(bgmPhase);
+          }
+        } catch (e) {toast('音声ファイルの読み込みに失敗しました');}
+        input.value = ''; // 同ファイル再選択できるようにリセット
+      };
+
+
+      // ── 埋め込み音源 ─────────────────────────────────
+      const EMBEDDED = {
+        banSfx: "./audio/ban-intro.ogg",
+        pickSfx: "./audio/pick-double.ogg",
+        timerTick: "./audio/timer-tick.ogg",
+        finalSfx: "./audio/finalization.ogg",
+        banBgm: "./audio/crossroads.mp3",
+        pickBgm: "./audio/crossroads.mp3",
+        bgmList: [
+          "./audio/prelude-trilogy.mp3",
+          "./audio/life-is-c.mp3",
+          "./audio/goblin.mp3",
+          "./audio/my-rules.mp3",
+          "./audio/crossroads.mp3",
+          "./audio/bitten.mp3",
+        ],
+      };
+
+      // 起動時に埋め込み音源を全キーでデコードしてcustomBuffersに格納
+      async function loadEmbedded() {
+        const ctx = ensureActx();
+
+        // bgmList を並列デコードして customBuffers.bgmList に格納
+        customBuffers.bgmList = [];
+        const bgmDecoded = await Promise.all(EMBEDDED.bgmList.map(async (uri, i) => {
+          try {
+            const ab = await (await fetch(uri)).arrayBuffer();
+            const buf = await ctx.decodeAudioData(ab);
+            console.log(`BGM[${i}] decoded OK`);
+            return buf;
+          } catch (e) {console.warn(`BGM[${i}] decode failed`, e); return null;}
+        }));
+        customBuffers.bgmList = bgmDecoded.filter(Boolean);
+        console.log(`BGM pool: ${customBuffers.bgmList.length} tracks ready`);
+
+        // SFX などその他の音源
+        for (const [key, uri] of Object.entries(EMBEDDED)) {
+          if (key === 'bgmList') continue;
+          try {
+            const resp = await fetch(uri);
+            const ab = await resp.arrayBuffer();
+            customBuffers[key] = await ctx.decodeAudioData(ab);
+            const id = key.replace(/([A-Z])/g, '-$1').toLowerCase();
+            const el = document.getElementById('fn-' + id);
+            if (el) el.textContent = key === 'banSfx' ? 'ban-intro' : key === 'pickSfx' ? 'pick-double' : key === 'timerTick' ? 'timer-tick' : key === 'finalSfx' ? 'finalization' : 'Crossroads';
+          } catch (e) {console.warn('embedded audio load failed:', key, e);}
+        }
+      }
+
+      loadAudioPrefs();
+      // loadEmbedded はユーザー操作後に実行（AudioContext制限回避）
+      let _embeddedLoaded = false;
+      async function ensureEmbedded() {
+        if (_embeddedLoaded) return;
+        _embeddedLoaded = true;
+        await loadEmbedded();
+      }
+      document.addEventListener('click', () => ensureEmbedded(), {once: true});
+      init();
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</body>
+
+</html>
