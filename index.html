@@ -2479,38 +2479,7 @@ async function savePickBanStats(actionsObj, seq){
   await set(metaRef, curTotal + 1);
   totalDrafts = curTotal + 1;
 }
-      // インクリメント形式に変更
-      const champUpdates = {};
-      seq.forEach((s, i) => {
-        const cid = actionsObj[i];
-        if (!cid) return;
-        const key = s.a === 'ban' ? 'bans' : 'picks';
-        champUpdates[cid] = champUpdates[cid] || {};
-        champUpdates[cid][key] = (champUpdates[cid][key] || 0) + 1;
-      });
-      const batch = {};
-      Object.entries(champUpdates).forEach(([cid, d]) => {
-        if (d.bans) batch[`stats/champs/${cid}/bans`] = {'.sv': 'timestamp'}; // 後でtransaction
-        if (d.picks) batch[`stats/champs/${cid}/picks`] = {'.sv': 'timestamp'};
-      });
-      // Firebase transaction でインクリメント
-      for (const [cid, d] of Object.entries(champUpdates)) {
-        if (d.bans) {
-          const r = ref(db, `stats/champs/${cid}/bans`);
-          const cur = (await get(r)).val() || 0;
-          await set(r, cur + d.bans);
-        }
-        if (d.picks) {
-          const r = ref(db, `stats/champs/${cid}/picks`);
-          const cur = (await get(r)).val() || 0;
-          await set(r, cur + d.picks);
-        }
-      }
-      // totalDrafts インクリメント
-      const metaRef = ref(db, 'stats/meta/totalDrafts');
-      const curTotal = (await get(metaRef)).val() || 0;
-      await set(metaRef, curTotal + 1);
-      totalDrafts = curTotal + 1;
+    
 
       // 勝者確定時に wins/losses を記録
       async function saveWinStats(winTeam, actionsObj, seq) {
