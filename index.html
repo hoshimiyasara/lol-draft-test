@@ -700,7 +700,7 @@
 
     .cc .cn {
       text-align: center;
-      font-size: .70rem;
+      font-size: 1rem;
       color: var(--text2);
       padding: 1px 2px 3px;
       background: var(--bg2);
@@ -1198,7 +1198,7 @@
     .timer-num {
       position: relative;
       z-index: 1;
-      font-size: 1.4rem;
+      font-size: 2.4rem;
       font-weight: 800;
       letter-spacing: 2px;
       color: #fff;
@@ -1662,90 +1662,224 @@
 
 
     /* ── チャンピオン統計オーバーレイ ── */
-    .pick-stats-overlay {
-      position: absolute;
-      inset: 0;
-      z-index: 20;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: rgba(255, 255, 255, 0);
-      animation: stats-in .35s ease-out forwards;
-      pointer-events: none;
-    }
+.pick-stats-overlay {
+  position: absolute;
+  top: 0;
+  bottom: 0;
 
-    @keyframes stats-in {
-      0% {
-        background: rgba(255, 255, 255, .85);
-      }
+  /* 横からスライドするための幅 */
+  width: 100%;
 
-      40% {
-        background: rgba(255, 255, 255, .92);
-      }
+  z-index: 20;
 
-      100% {
-        background: rgba(10, 12, 18, .82);
-      }
-    }
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
 
-    .pick-stats-overlay.out {
-      animation: stats-out .4s ease-in forwards;
-    }
+  background: #ffffff;
+  color: #111;
 
-    @keyframes stats-out {
-      0% {
-        background: rgba(10, 12, 18, .82);
-        opacity: 1;
-      }
+  pointer-events: none;
 
-      100% {
-        background: rgba(10, 12, 18, 0);
-        opacity: 0;
-      }
-    }
+  /* 初期状態：Blueは左から、Redは右から */
+  transform: translateX(-100%);
 
-    .pso-name {
-      font-size: .58rem;
-      font-weight: 700;
-      color: rgba(255, 255, 255, .9);
-      letter-spacing: 1px;
-      margin-bottom: 5px;
-      text-align: center;
-      padding: 0 4px;
-    }
+  animation:
+    stats-slide-in-blue .45s cubic-bezier(.22,.61,.36,1) forwards;
 
-    .pso-row {
-      display: flex;
-      gap: 6px;
-    }
+  overflow: hidden;
+}
 
-    .pso-stat {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1px;
-    }
 
-    .pso-val {
-      font-size: .78rem;
-      font-weight: 800;
-      color: var(--gold);
-    }
+/* ─────────────────────────────────────
+   Blue Side
+   左 → 右
+   ───────────────────────────────────── */
 
-    .pso-lbl {
-      font-size: .44rem;
-      color: rgba(255, 255, 255, .6);
-      letter-spacing: 1px;
-      text-transform: uppercase;
-    }
+.blue-tp .pick-stats-overlay {
+  left: 0;
+  right: auto;
 
-    .pso-sep {
-      width: 1px;
-      background: rgba(255, 255, 255, .2);
-      align-self: stretch;
-      margin: 2px 0;
-    }
+  transform: translateX(-100%);
+
+  animation:
+    stats-slide-in-blue .45s cubic-bezier(.22,.61,.36,1) forwards;
+}
+
+
+/* ─────────────────────────────────────
+   Red Side
+   右 → 左
+   ───────────────────────────────────── */
+
+.red-tp .pick-stats-overlay {
+  right: 0;
+  left: auto;
+
+  transform: translateX(100%);
+
+  animation:
+    stats-slide-in-red .45s cubic-bezier(.22,.61,.36,1) forwards;
+}
+
+
+/* Blue：左から入る */
+@keyframes stats-slide-in-blue {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+}
+
+
+/* Red：右から入る */
+@keyframes stats-slide-in-red {
+  0% {
+    transform: translateX(100%);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+}
+
+
+/* ─────────────────────────────────────
+   フェードアウトではなく
+   入ってきた方向へ戻す
+   ───────────────────────────────────── */
+
+.pick-stats-overlay.out {
+  animation-duration: .35s;
+  animation-timing-function: cubic-bezier(.55,.08,.68,.53);
+}
+
+.blue-tp .pick-stats-overlay.out {
+  animation-name: stats-slide-out-blue;
+}
+
+.red-tp .pick-stats-overlay.out {
+  animation-name: stats-slide-out-red;
+}
+
+
+@keyframes stats-slide-out-blue {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+
+@keyframes stats-slide-out-red {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════
+   チャンピオン名
+   ═══════════════════════════════════════════════════ */
+
+.pso-name {
+  position: relative;
+
+  padding: 14px 12px 10px;
+
+  font-size: .9rem;
+  font-weight: 800;
+
+  color: #111;
+
+  letter-spacing: 1.5px;
+  text-align: left;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  border-bottom: 1px solid #e5e5e5;
+}
+
+
+/* ═══════════════════════════════════════════════════
+   統計を縦に並べる
+   ═══════════════════════════════════════════════════ */
+
+.pso-row {
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+  padding: 8px 12px 0;
+
+  gap: 0;
+}
+
+
+.pso-stat {
+  display: flex;
+  flex-direction: column;
+
+  align-items: flex-start;
+
+  padding: 8px 0 10px;
+
+  gap: 1px;
+}
+
+
+/* 数値 */
+.pso-val {
+  order: 2;
+
+  font-size: 1.35rem;
+  font-weight: 800;
+
+  line-height: 1;
+
+  color: #111;
+
+  letter-spacing: .5px;
+}
+
+
+/* PICK% / BAN% / WIN% */
+.pso-lbl {
+  order: 1;
+
+  font-size: .58rem;
+  font-weight: 700;
+
+  color: #777;
+
+  letter-spacing: 1.5px;
+
+  text-transform: uppercase;
+}
+
+
+/* 区切り線 */
+.pso-sep {
+  width: 100%;
+  height: 1px;
+
+  background: #e5e5e5;
+
+  margin: 0;
+}
 
     /* ── タイムアップ モーダル ── */
     .timeout-ov {
@@ -2464,22 +2598,22 @@
       }
 
       // ドラフト完了時に BAN/PICK を記録
-async function savePickBanStats(actionsObj, seq){
-  if(!db) return;
-  for(const [i, s] of seq.entries()){
-    const cid = actionsObj[i];
-    if(!cid) continue;
-    const key = s.a === 'ban' ? 'bans' : 'picks';
-    const r = ref(db,`stats/champs/${cid}/${key}`);
-    const cur = (await get(r)).val() || 0;
-    await set(r, cur + 1);
-  }
-  const metaRef = ref(db,'stats/meta/totalDrafts');
-  const curTotal = (await get(metaRef)).val() || 0;
-  await set(metaRef, curTotal + 1);
-  totalDrafts = curTotal + 1;
-}
-    
+      async function savePickBanStats(actionsObj, seq) {
+        if (!db) return;
+        for (const [i, s] of seq.entries()) {
+          const cid = actionsObj[i];
+          if (!cid) continue;
+          const key = s.a === 'ban' ? 'bans' : 'picks';
+          const r = ref(db, `stats/champs/${cid}/${key}`);
+          const cur = (await get(r)).val() || 0;
+          await set(r, cur + 1);
+        }
+        const metaRef = ref(db, 'stats/meta/totalDrafts');
+        const curTotal = (await get(metaRef)).val() || 0;
+        await set(metaRef, curTotal + 1);
+        totalDrafts = curTotal + 1;
+      }
+      
 
       // 勝者確定時に wins/losses を記録
       async function saveWinStats(winTeam, actionsObj, seq) {
@@ -3023,7 +3157,7 @@ async function savePickBanStats(actionsObj, seq){
           const ssa = $('side-select-area');
           if (wa) {
             // 勝者選択: BO かつ未決着 かつ自分のターン（どちらかのプレイヤー）
-            const showWinner = isBo() && !seriesDone && !lastState?.sideSelectPending && (myRole === 'blue' || myRole === 'red');
+            const showWinner = !seriesDone && !lastState?.sideSelectPending && (myRole === 'blue' || myRole === 'red');
             wa.style.display = showWinner ? 'flex' : 'none';
           }
           // サイド選択: 負けたチームにのみ表示
@@ -3560,7 +3694,6 @@ async function savePickBanStats(actionsObj, seq){
         await loadEmbedded();
       }
       document.addEventListener('click', () => ensureEmbedded(), {once: true});
-      window.init = init;
       init();
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
