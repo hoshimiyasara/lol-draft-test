@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LoL Draft Tool</title>
   <meta property="og:title" content="LoL Draft Tool">
-  <meta property="og:description" content="League of Legends 5v5 リアルタイムドラフトツール。トーナメント・フィアレスドラフト対応。">
+  <meta property="og:description" content="League of Legends 5v5 リアルタイムドラフトツール。トーナメントドラフト対応。">
   <meta property="og:type" content="website">
   <meta property="og:image" content="https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Jinx_0.jpg">
   <meta name="twitter:card" content="summary_large_image">
@@ -1438,12 +1438,6 @@
       cursor: not-allowed;
     }
 
-    .fearless-note {
-      font-size: .68rem;
-      color: var(--red);
-      margin-top: 8px;
-    }
-
     .mode-desc {
       font-size: .73rem;
       color: var(--text2);
@@ -1452,56 +1446,6 @@
       padding: 10px 12px;
       background: var(--bg2);
       border-radius: 3px;
-    }
-
-    /* ── シリーズインジケーター ── */
-    .series-wrap {
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      gap: 3px;
-    }
-
-    .series-wrap.on {
-      display: flex;
-    }
-
-    .series-dots {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .sdot {
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      border: 2px solid var(--bdr2);
-      transition: all .3s;
-    }
-
-    .sdot.bw {
-      background: var(--blue);
-      border-color: var(--blue);
-      box-shadow: 0 0 8px rgba(30, 138, 255, .7);
-    }
-
-    .sdot.rw {
-      background: var(--red);
-      border-color: var(--red);
-      box-shadow: 0 0 8px rgba(232, 64, 64, .7);
-    }
-
-    .ssep {
-      width: 2px;
-      height: 20px;
-      background: var(--bdr2);
-      border-radius: 1px;
-      margin: 0 4px;
-    }
-
-    .sgame-lbl {
-      display: none !important;
     }
 
     /* ── 勝者選択 ── */
@@ -1566,319 +1510,90 @@
       color: #fff;
     }
 
-    /* ── フィアレス使用済みパネル ── */
-    /* フィアレスパネル */
-    .fp {
-      width: 0;
-      overflow: hidden;
-      transition: width .3s;
-      display: flex;
-      flex-direction: column;
-      background: var(--bg1);
-      flex-shrink: 0;
-    }
-
-    .fp.visible {
-      width: 124px;
-      overflow-y: auto;
-    }
-
-    .fp.visible::-webkit-scrollbar {
-      width: 3px;
-    }
-
-    .fp.visible::-webkit-scrollbar-thumb {
-      background: var(--bdr2);
-    }
-
-    .fp-blue {
-      border-right: 1px solid var(--bdr2);
-      background: var(--bg1);
-    }
-
-    .fp-red {
-      border-left: 1px solid var(--bdr2);
-      background: var(--bg1);
-    }
-
-    .fp-game-block {
-      display: flex;
-      flex-direction: column;
-      padding: 4px 3px 2px;
-    }
-
-    .fp-game-lbl {
-      font-size: .48rem;
-      color: var(--text);
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      text-align: center;
-      padding: 2px 0 3px;
-      flex-shrink: 0;
-    }
-
-    .fp-game-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 2px;
-      justify-content: flex-start;
-      width: 120px;
-    }
-
-    .fp-champ {
-      width: 38px;
-      height: 38px;
-      object-fit: cover;
-      border-radius: 2px;
-      opacity: .6;
-      filter: grayscale(.3);
-      display: block;
-    }
-
-    .fp-champ-wrap {
-      position: relative;
-      display: inline-block;
-      flex-shrink: 0;
-    }
-
-    .fp-champ-wrap::after {
-      content: "✕";
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(200, 30, 30, .3);
-      color: rgba(255, 80, 80, .85);
-      font-size: .85rem;
-      font-weight: 900;
-    }
-
-    .fp-divider {
-      height: 1px;
-      background: var(--bdr2);
-      margin: 3px 4px;
-    }
-
-
     /* ── チャンピオン統計オーバーレイ ── */
     .pick-stats-overlay {
       position: absolute;
-      top: 0;
-      bottom: 0;
-
-      /* 横からスライドするための幅 */
-      width: 100%;
-
+      inset: 0;
       z-index: 20;
-
       display: flex;
       flex-direction: column;
-      justify-content: flex-start;
-      align-items: stretch;
-
-      background: #ffffff;
-      color: #111;
-
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0);
+      animation: stats-in .35s ease-out forwards;
       pointer-events: none;
-
-      /* 初期状態：Blueは左から、Redは右から */
-      transform: translateX(-100%);
-
-      animation:
-        stats-slide-in-blue .8s cubic-bezier(.16, 1, .3, 1) forwards;
-
-      overflow: hidden;
     }
 
-
-    /* ─────────────────────────────────────
-   Blue Side
-   左 → 右
-   ───────────────────────────────────── */
-
-    .blue-tp .pick-stats-overlay {
-      left: 0;
-      right: auto;
-
-      transform: translateX(-100%);
-
-      animation:
-        stats-slide-in-blue .8s cubic-bezier(.16, 1, .3, 1) forwards;
-    }
-
-
-    /* ─────────────────────────────────────
-   Red Side
-   右 → 左
-   ───────────────────────────────────── */
-
-    .red-tp .pick-stats-overlay {
-      right: 0;
-      left: auto;
-
-      transform: translateX(100%);
-
-      animation:
-        stats-slide-in-red .8s cubic-bezier(.16, 1, .3, 1) forwards;
-    }
-
-
-    /* Blue：左から入る */
-    @keyframes stats-slide-in-blue {
+    @keyframes stats-in {
       0% {
-        transform: translateX(-100%);
+        background: rgba(255, 255, 255, .85);
+      }
+
+      40% {
+        background: rgba(255, 255, 255, .92);
       }
 
       100% {
-        transform: translateX(0);
+        background: rgba(10, 12, 18, .82);
       }
     }
-
-
-    /* Red：右から入る */
-    @keyframes stats-slide-in-red {
-      0% {
-        transform: translateX(100%);
-      }
-
-      100% {
-        transform: translateX(0);
-      }
-    }
-
-
-    /* ─────────────────────────────────────
-   フェードアウトではなく
-   入ってきた方向へ戻す
-   ───────────────────────────────────── */
 
     .pick-stats-overlay.out {
-      animation-duration: .35s;
-      animation-timing-function: cubic-bezier(.55, .08, .68, .53);
+      animation: stats-out .4s ease-in forwards;
     }
 
-    .blue-tp .pick-stats-overlay.out {
-      animation-name: stats-slide-out-blue;
-    }
-
-    .red-tp .pick-stats-overlay.out {
-      animation-name: stats-slide-out-red;
-    }
-
-
-    @keyframes stats-slide-out-blue {
+    @keyframes stats-out {
       0% {
-        transform: translateX(0);
+        background: rgba(10, 12, 18, .82);
+        opacity: 1;
       }
 
       100% {
-        transform: translateX(-100%);
+        background: rgba(10, 12, 18, 0);
+        opacity: 0;
       }
     }
-
-
-    @keyframes stats-slide-out-red {
-      0% {
-        transform: translateX(0);
-      }
-
-      100% {
-        transform: translateX(100%);
-      }
-    }
-
-
-    /* ═══════════════════════════════════════════════════
-   チャンピオン名
-   ═══════════════════════════════════════════════════ */
 
     .pso-name {
-      position: relative;
-
-      padding: 14px 12px 10px;
-
-      font-size: 1.2rem;
-      font-weight: 800;
-
-      color: #111;
-
-      letter-spacing: 1.5px;
-      text-align: left;
-
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-
-      border-bottom: 1px solid #e5e5e5;
+      font-size: .58rem;
+      font-weight: 700;
+      color: rgba(255, 255, 255, .9);
+      letter-spacing: 1px;
+      margin-bottom: 5px;
+      text-align: center;
+      padding: 0 4px;
     }
-
-
-    /* ═══════════════════════════════════════════════════
-   統計を縦に並べる
-   ═══════════════════════════════════════════════════ */
 
     .pso-row {
       display: flex;
-      flex-direction: column;
-
-      width: 100%;
-      padding: 8px 12px 0;
-
-      gap: 0;
+      gap: 6px;
     }
-
 
     .pso-stat {
       display: flex;
       flex-direction: column;
-
-      align-items: flex-start;
-
-      padding: 8px 0 10px;
-
+      align-items: center;
       gap: 1px;
     }
 
-
-    /* 数値 */
     .pso-val {
-      order: 2;
-
-      font-size: 1.7rem;
+      font-size: 1rem;
       font-weight: 800;
-
-      line-height: 1;
-
-      color: #111;
-
-      letter-spacing: .5px;
+      color: var(--gold);
     }
 
-
-    /* PICK% / BAN% / WIN% */
     .pso-lbl {
-      order: 1;
-
-      font-size: .75rem;
-      font-weight: 700;
-
-      color: #777;
-
-      letter-spacing: 1.5px;
-
+      font-size: .44rem;
+      color: rgba(255, 255, 255, .6);
+      letter-spacing: 1px;
       text-transform: uppercase;
     }
 
-
-    /* 区切り線 */
     .pso-sep {
-      width: 100%;
-      height: 1px;
-
-      background: #e5e5e5;
-
-      margin: 0;
+      width: 1px;
+      background: rgba(255, 255, 255, .2);
+      align-self: stretch;
+      margin: 2px 0;
     }
 
     /* ── タイムアップ モーダル ── */
@@ -2137,16 +1852,8 @@
     <div class="mode-card">
       <div class="mode-section-lbl">シリーズ</div>
       <div class="mode-row">
-        <button class="mode-btn on" id="mb-bo1" onclick="setMode('bo1')">BO1</button>
-        <button class="mode-btn" id="mb-bo3" onclick="setMode('bo3')">BO3</button>
-        <button class="mode-btn" id="mb-bo5" onclick="setMode('bo5')">BO5</button>
+        <button class="mode-btn on" id="mb-bo1">BO1</button>
       </div>
-      <div class="mode-section-lbl" style="margin-top:16px">ドラフトモード</div>
-      <div class="mode-row">
-        <button class="mode-btn on" id="mb-tournament" onclick="setDraftType('tournament')">トーナメント</button>
-        <button class="mode-btn" id="mb-fearless" onclick="setDraftType('fearless')">フィアレス</button>
-      </div>
-      <div class="fearless-note" id="fearless-note" style="display:none">⚠️ フィアレスはBO3 / BO5のみ選択できます</div>
       <div class="mode-desc" id="mode-desc">BANを3体×2フェーズ、PICKをフェーズ1→2の順で行うトーナメント標準形式です。</div>
       <button class="btn btn-gold" style="margin-top:16px" onclick="confirmMode()">次へ →</button>
       <button class="btn btn-ghost" style="margin-top:6px;width:100%;padding:8px"
@@ -2192,10 +1899,7 @@
       <div class="dh-center">
         <div class="dh-phase" id="dh-phase">—</div>
         <div class="dh-status" id="dh-status">待機中...</div>
-        <div class="series-wrap" id="series-wrap">
-          <div class="series-dots" id="series-dots"></div>
-          <div class="sgame-lbl" id="sgame-lbl" style="display:none">GAME 1</div>
-        </div>
+
       </div>
       <div class="dh-team red">
         <div class="dh-team-name">Red Side</div>
@@ -2224,11 +1928,9 @@
           <button class="audio-btn" onclick="toggleAudioPanel()">🔊</button>
         </div>
         <div class="cw-row">
-          <div class="fp fp-blue" id="fp-blue"></div>
           <div class="cw">
             <div class="cg" id="cg"></div>
           </div>
-          <div class="fp fp-red" id="fp-red"></div>
         </div>
       </div>
 
@@ -2257,11 +1959,6 @@
           <span style="font-size:.62rem;color:var(--gold);letter-spacing:2px">GAME 勝者：</span>
           <button class="wbtn-blue" style="padding:5px 16px" onclick="selectWinner('blue')">🔵 Blue Win</button>
           <button class="wbtn-red" style="padding:5px 16px" onclick="selectWinner('red')">🔴 Red Win</button>
-        </div>
-        <div id="side-select-area" style="display:none;align-items:center;justify-content:center;gap:8px;flex:1">
-          <span style="font-size:.62rem;color:var(--text2);letter-spacing:2px">次の試合のサイドを選択</span>
-          <button class="wbtn-blue" style="padding:5px 16px" onclick="selectSide('blue')">🔵 Blue Side</button>
-          <button class="wbtn-red" style="padding:5px 16px" onclick="selectSide('red')">🔴 Red Side</button>
         </div>
         <button class="btn-sm btn-next" id="btn-next" onclick="goNew()" style="display:none">次のゲーム →</button>
       </div>
@@ -2342,22 +2039,12 @@
 
       let db, roomId, myRole, champMap = {}, ddVer = '14.23.1';
 
-      // ── シリーズ状態 ──────────────────────────────────
+      // ── ドラフト状態 ──────────────────────────────────
       let roomConfig = {mode: 'bo1', draftType: 'tournament'};
-      let currentGame = 1;
-      let seriesScores = {blue: 0, red: 0};
-      let fearlessUsed = {blue: [], red: []};
-      let localMode = 'bo1';
-      let localDraft = 'tournament';
-      let seriesDone = false;
       let winnerSelected = false;
-
-
 
       function getSeq() {return SEQ;}
       function getPhlbl() {return PHLBL;}
-      function targetWins() {return roomConfig.mode === 'bo5' ? 3 : roomConfig.mode === 'bo3' ? 2 : 1;}
-      function isBo() {return roomConfig.mode !== 'bo1';}
 
       let curStep = 0, actions = {}, started = false, readyState = {blue: false, red: false};
       let selected = null, roleFilter = 'all', lastState = null;
@@ -2532,48 +2219,20 @@
             step: 0, actions: null, started: false, done: false,
             hover: null, bgmIndex: null, timerStart: null,
             'ready/blue': false, 'ready/red': false,
-            sideSelectPending: false, loser: null,
+            winnerSelected: false, winner: null,
           });
         }
       };
 
 
       // ── モード選択 ───────────────────────────────────
-      const MODE_DESC = {
-        tournament: 'BANを3体×2フェーズ、PICKをフェーズ1→2の順で行うトーナメント標準形式です。',
-        fearless: '一度PICKしたチャンピオンはシリーズ中使用不可になります。BO3/BO5専用。',
-      };
-
-      window.setMode = (mode) => {
-        localMode = mode;
-        ['bo1', 'bo3', 'bo5'].forEach(m => $(`mb-${m}`)?.classList.toggle('on', m === mode));
-        // BO1のときFearless選択不可
-        const fbtn = $('mb-fearless');
-        if (mode === 'bo1' && localDraft === 'fearless') {
-          localDraft = 'tournament';
-          setDraftType('tournament');
-        }
-        fbtn?.classList.toggle('mdisabled', mode === 'bo1');
-      };
-
-      window.setDraftType = (dtype) => {
-        if (dtype === 'fearless' && localMode === 'bo1') {toast('フィアレスはBO3/BO5専用です'); return;}
-        localDraft = dtype;
-        ['draft', 'tournament', 'fearless'].forEach(d => $(`mb-${d}`)?.classList.toggle('on', d === dtype));
-        const note = $('fearless-note');
-        if (note) note.style.display = dtype === 'fearless' && localMode === 'bo1' ? 'block' : 'none';
-        const desc = $('mode-desc');
-        if (desc) desc.textContent = MODE_DESC[dtype] || '';
-      };
-
       window.confirmMode = async () => {
-        if (localDraft === 'fearless' && localMode === 'bo1') {toast('フィアレスはBO3/BO5専用です'); return;}
         roomId = genId();
         history.pushState({}, '', `?room=${roomId}`);
         try {
           await update(ref(db, `rooms/${roomId}`), {
-            'config/mode': localMode,
-            'config/draftType': localDraft,
+            'config/mode': 'bo1',
+            'config/draftType': 'tournament',
             createdAt: Date.now(),
           });
         } catch (e) {
@@ -2586,250 +2245,9 @@
       };
 
 
-
       // ════════════════════════════════════════════════════
       //  CHAMPION STATS
       // ════════════════════════════════════════════════════
-      // ════════════════════════════════════════════════════
-      //  過去PICK/BAN/WINデータ
-      // ════════════════════════════════════════════════════
-
-      const historicalStats = {
-
-        Urgot: {picks: 1, wins: 1, losses: 0, bans: 0},
-        Ahri: {picks: 14, wins: 5, losses: 9, bans: 3},
-        Ivern: {picks: 4, wins: 3, losses: 1, bans: 0},
-        Akali: {picks: 19, wins: 6, losses: 13, bans: 16},
-        Akshan: {picks: 3, wins: 1, losses: 2, bans: 0},
-        Azir: {picks: 4, wins: 2, losses: 2, bans: 3},
-        Ashe: {picks: 59, wins: 27, losses: 32, bans: 3},
-        Annie: {picks: 5, wins: 2, losses: 3, bans: 2},
-        Anivia: {picks: 2, wins: 0, losses: 2, bans: 0},
-        Aphelios: {picks: 25, wins: 10, losses: 15, bans: 2},
-        Amumu: {picks: 14, wins: 9, losses: 5, bans: 1},
-        Alistar: {picks: 23, wins: 12, losses: 11, bans: 1},
-        Ambessa: {picks: 23, wins: 7, losses: 16, bans: 4},
-        Evelynn: {picks: 4, wins: 3, losses: 1, bans: 7},
-        Illaoi: {picks: 47, wins: 25, losses: 22, bans: 130},
-        Irelia: {picks: 16, wins: 9, losses: 7, bans: 83},
-        Vi: {picks: 7, wins: 4, losses: 3, bans: 2},
-        Varus: {picks: 21, wins: 10, losses: 11, bans: 9},
-        Viego: {picks: 36, wins: 19, losses: 17, bans: 23},
-        MonkeyKing: {picks: 7, wins: 4, losses: 3, bans: 0},
-        Vayne: {picks: 31, wins: 16, losses: 15, bans: 20},
-        Vex: {picks: 5, wins: 2, losses: 3, bans: 0},
-        Velkoz: {picks: 45, wins: 26, losses: 19, bans: 26},
-        Udyr: {picks: 2, wins: 0, losses: 2, bans: 0},
-        Aatrox: {picks: 20, wins: 6, losses: 14, bans: 1},
-        Ekko: {picks: 19, wins: 10, losses: 9, bans: 4},
-        Ezreal: {picks: 35, wins: 11, losses: 24, bans: 2},
-        Elise: {picks: 1, wins: 0, losses: 1, bans: 0},
-        Aurora: {picks: 9, wins: 5, losses: 4, bans: 1},
-        Ornn: {picks: 59, wins: 30, losses: 29, bans: 19},
-        Olaf: {picks: 5, wins: 2, losses: 3, bans: 0},
-        Orianna: {picks: 13, wins: 5, losses: 8, bans: 9},
-        AurelionSol: {picks: 5, wins: 1, losses: 4, bans: 0},
-        Karthus: {picks: 9, wins: 3, losses: 6, bans: 2},
-        Kaisa: {picks: 25, wins: 12, losses: 13, bans: 2},
-        Kassadin: {picks: 14, wins: 8, losses: 6, bans: 8},
-        KSante: {picks: 6, wins: 0, losses: 6, bans: 1},
-        Cassiopeia: {picks: 3, wins: 1, losses: 2, bans: 0},
-        Khazix: {picks: 3, wins: 1, losses: 2, bans: 0},
-        Katarina: {picks: 36, wins: 14, losses: 22, bans: 90},
-        Camille: {picks: 13, wins: 4, losses: 9, bans: 4},
-        Galio: {picks: 43, wins: 22, losses: 21, bans: 70},
-        Kalista: {picks: 3, wins: 1, losses: 2, bans: 0},
-        Karma: {picks: 13, wins: 6, losses: 7, bans: 2},
-        Garen: {picks: 19, wins: 5, losses: 14, bans: 33},
-        Qiyana: {picks: 8, wins: 4, losses: 4, bans: 40},
-        Kindred: {picks: 10, wins: 2, losses: 8, bans: 2},
-        Quinn: {picks: 4, wins: 1, losses: 3, bans: 3},
-        Gwen: {picks: 26, wins: 10, losses: 16, bans: 18},
-        Gragas: {picks: 6, wins: 3, losses: 3, bans: 1},
-        Graves: {picks: 7, wins: 2, losses: 5, bans: 0},
-        Kled: {picks: 11, wins: 5, losses: 6, bans: 24},
-        Caitlyn: {picks: 27, wins: 12, losses: 15, bans: 5},
-        Kayle: {picks: 26, wins: 12, losses: 14, bans: 42},
-        Kayn: {picks: 21, wins: 8, losses: 13, bans: 4},
-        Kennen: {picks: 2, wins: 1, losses: 1, bans: 1},
-        Corki: {picks: 9, wins: 5, losses: 4, bans: 0},
-        KogMaw: {picks: 13, wins: 5, losses: 8, bans: 0},
-        Zaahen: {picks: 16, wins: 7, losses: 9, bans: 10},
-        Sion: {picks: 58, wins: 33, losses: 25, bans: 62},
-        Zyra: {picks: 8, wins: 3, losses: 5, bans: 0},
-        Sylas: {picks: 43, wins: 26, losses: 17, bans: 55},
-        Zac: {picks: 19, wins: 6, losses: 13, bans: 2},
-        Samira: {picks: 55, wins: 34, losses: 21, bans: 53},
-        Xayah: {picks: 46, wins: 25, losses: 21, bans: 7},
-        Shyvana: {picks: 8, wins: 6, losses: 2, bans: 3},
-        Sivir: {picks: 26, wins: 10, losses: 16, bans: 43},
-        Jayce: {picks: 3, wins: 3, losses: 0, bans: 0},
-        Shen: {picks: 22, wins: 10, losses: 12, bans: 17},
-        Ziggs: {picks: 31, wins: 14, losses: 17, bans: 231},
-        JarvanIV: {picks: 14, wins: 5, losses: 9, bans: 3},
-        Shaco: {picks: 26, wins: 12, losses: 14, bans: 48},
-        Jax: {picks: 16, wins: 6, losses: 10, bans: 10},
-        Janna: {picks: 1, wins: 0, losses: 1, bans: 0},
-        Zilean: {picks: 2, wins: 0, losses: 2, bans: 0},
-        Jhin: {picks: 63, wins: 32, losses: 31, bans: 3},
-        Jinx: {picks: 21, wins: 12, losses: 9, bans: 6},
-        Singed: {picks: 7, wins: 5, losses: 2, bans: 8},
-        XinZhao: {picks: 10, wins: 6, losses: 4, bans: 3},
-        Syndra: {picks: 17, wins: 6, losses: 11, bans: 17},
-        Swain: {picks: 52, wins: 25, losses: 27, bans: 31},
-        Skarner: {picks: 5, wins: 2, losses: 3, bans: 2},
-        Smolder: {picks: 31, wins: 18, losses: 13, bans: 19},
-        Thresh: {picks: 54, wins: 29, losses: 25, bans: 33},
-        Sejuani: {picks: 21, wins: 12, losses: 9, bans: 1},
-        Sett: {picks: 62, wins: 29, losses: 33, bans: 79},
-        Zed: {picks: 16, wins: 9, losses: 7, bans: 16},
-        Senna: {picks: 72, wins: 52, losses: 20, bans: 50},
-        Xerath: {picks: 88, wins: 48, losses: 40, bans: 87},
-        Seraphine: {picks: 29, wins: 15, losses: 14, bans: 2},
-        Zeri: {picks: 13, wins: 6, losses: 7, bans: 1},
-        Zoe: {picks: 20, wins: 11, losses: 9, bans: 15},
-        Sona: {picks: 9, wins: 4, losses: 5, bans: 0},
-        Soraka: {picks: 8, wins: 3, losses: 5, bans: 2},
-        Diana: {picks: 116, wins: 56, losses: 60, bans: 53},
-        TahmKench: {picks: 36, wins: 23, losses: 13, bans: 11},
-        Darius: {picks: 18, wins: 9, losses: 9, bans: 17},
-        Taric: {picks: 7, wins: 2, losses: 5, bans: 1},
-        Taliyah: {picks: 3, wins: 0, losses: 3, bans: 0},
-        Talon: {picks: 10, wins: 5, losses: 5, bans: 26},
-        Chogath: {picks: 45, wins: 27, losses: 18, bans: 53},
-        TwistedFate: {picks: 5, wins: 3, losses: 2, bans: 0},
-        Teemo: {picks: 13, wins: 9, losses: 4, bans: 12},
-        Twitch: {picks: 6, wins: 2, losses: 4, bans: 0},
-        Trundle: {picks: 45, wins: 18, losses: 27, bans: 13},
-        Tristana: {picks: 10, wins: 4, losses: 6, bans: 0},
-        Tryndamere: {picks: 4, wins: 1, losses: 3, bans: 0},
-        Draven: {picks: 3, wins: 0, losses: 3, bans: 1},
-        Gnar: {picks: 12, wins: 6, losses: 6, bans: 13},
-        Nasus: {picks: 31, wins: 18, losses: 13, bans: 14},
-        Naafiri: {picks: 19, wins: 8, losses: 11, bans: 6},
-        Nami: {picks: 13, wins: 11, losses: 2, bans: 0},
-        Neeko: {picks: 40, wins: 25, losses: 15, bans: 188},
-        Nilah: {picks: 26, wins: 17, losses: 9, bans: 14},
-        Nidalee: {picks: 5, wins: 2, losses: 3, bans: 2},
-        Nunu: {picks: 14, wins: 10, losses: 4, bans: 21},
-        Nautilus: {picks: 49, wins: 17, losses: 32, bans: 16},
-        Nocturne: {picks: 14, wins: 10, losses: 4, bans: 1},
-        Bard: {picks: 10, wins: 3, losses: 7, bans: 0},
-        Pyke: {picks: 16, wins: 1, losses: 15, bans: 7},
-        Heimerdinger: {picks: 13, wins: 9, losses: 4, bans: 20},
-        Pantheon: {picks: 9, wins: 3, losses: 6, bans: 5},
-        Viktor: {picks: 64, wins: 35, losses: 29, bans: 129},
-        Fiora: {picks: 20, wins: 11, losses: 9, bans: 34},
-        Fizz: {picks: 4, wins: 4, losses: 0, bans: 6},
-        Fiddlesticks: {picks: 5, wins: 1, losses: 4, bans: 0},
-        Hwei: {picks: 33, wins: 15, losses: 18, bans: 13},
-        Briar: {picks: 26, wins: 15, losses: 11, bans: 21},
-        Braum: {picks: 28, wins: 14, losses: 14, bans: 10},
-        Vladimir: {picks: 19, wins: 10, losses: 9, bans: 151},
-        Brand: {picks: 14, wins: 9, losses: 5, bans: 3},
-        Blitzcrank: {picks: 19, wins: 11, losses: 8, bans: 7},
-        Veigar: {picks: 49, wins: 21, losses: 28, bans: 66},
-        Hecarim: {picks: 8, wins: 1, losses: 7, bans: 3},
-        Belveth: {picks: 6, wins: 2, losses: 4, bans: 0},
-        Poppy: {picks: 18, wins: 9, losses: 9, bans: 1},
-        Volibear: {picks: 37, wins: 23, losses: 14, bans: 41},
-        Maokai: {picks: 48, wins: 23, losses: 25, bans: 14},
-        MasterYi: {picks: 34, wins: 15, losses: 19, bans: 33},
-        Malzahar: {picks: 30, wins: 15, losses: 15, bans: 83},
-        Malphite: {picks: 50, wins: 30, losses: 20, bans: 96},
-        MissFortune: {picks: 18, wins: 8, losses: 10, bans: 0},
-        Milio: {picks: 5, wins: 3, losses: 2, bans: 1},
-        DrMundo: {picks: 27, wins: 15, losses: 12, bans: 16},
-        Mel: {picks: 38, wins: 19, losses: 19, bans: 28},
-        Morgana: {picks: 13, wins: 7, losses: 6, bans: 2},
-        Mordekaiser: {picks: 40, wins: 22, losses: 18, bans: 75},
-        Yasuo: {picks: 24, wins: 14, losses: 10, bans: 260},
-        Yuumi: {picks: 13, wins: 10, losses: 3, bans: 0},
-        Yunara: {picks: 14, wins: 6, losses: 8, bans: 1},
-        Yone: {picks: 48, wins: 22, losses: 26, bans: 83},
-        Yorick: {picks: 42, wins: 27, losses: 15, bans: 67},
-        Ryze: {picks: 9, wins: 5, losses: 4, bans: 6},
-        Rakan: {picks: 7, wins: 3, losses: 4, bans: 3},
-        Lux: {picks: 16, wins: 8, losses: 8, bans: 0},
-        Rammus: {picks: 8, wins: 4, losses: 4, bans: 2},
-        Rumble: {picks: 3, wins: 3, losses: 0, bans: 0},
-        LeeSin: {picks: 12, wins: 6, losses: 6, bans: 1},
-        Riven: {picks: 14, wins: 3, losses: 11, bans: 17},
-        Lissandra: {picks: 13, wins: 10, losses: 3, bans: 32},
-        Lillia: {picks: 23, wins: 9, losses: 14, bans: 15},
-        Lucian: {picks: 9, wins: 7, losses: 2, bans: 1},
-        Leblanc: {picks: 12, wins: 5, losses: 7, bans: 12},
-        Lulu: {picks: 13, wins: 3, losses: 10, bans: 0},
-        Leona: {picks: 53, wins: 31, losses: 22, bans: 31},
-
-      };
-      // ════════════════════════════════════════════════════
-      //  過去データをFirebaseへ一括投入
-      // ════════════════════════════════════════════════════
-
-      window.importHistoricalStats = async function () {
-
-        if (!db) {
-          console.error('Firebaseがまだ初期化されていません');
-          alert('Firebaseがまだ初期化されていません。少し待ってから実行してください。');
-          return;
-        }
-
-        const TOTAL_GAMES = 356;
-
-        const confirmed = confirm(
-          `過去データ ${TOTAL_GAMES}ゲーム分をFirebaseへ登録します。\n\n` +
-          `現在の stats/champs を上書きします。\n` +
-          `本当に実行しますか？`
-        );
-
-        if (!confirmed) return;
-
-        try {
-
-          // champsを一度丸ごと置き換える
-          await set(
-            ref(db, 'stats/champs'),
-            historicalStats
-          );
-
-          // 総ゲーム数を設定
-          await set(
-            ref(db, 'stats/meta/totalDrafts'),
-            TOTAL_GAMES
-          );
-
-          // インポート日時を記録
-          await set(
-            ref(db, 'stats/meta/historicalImportedAt'),
-            new Date().toISOString()
-          );
-
-          // 現在のページでも即座に反映
-          totalDrafts = TOTAL_GAMES;
-
-          console.log('================================');
-          console.log('過去データのインポート完了');
-          console.log('総ゲーム数:', TOTAL_GAMES);
-          console.log('チャンピオン数:', Object.keys(historicalStats).length);
-          console.log('================================');
-
-          alert(
-            `過去データのインポートが完了しました！\n\n` +
-            `総ゲーム数: ${TOTAL_GAMES}\n` +
-            `登録チャンピオン数: ${Object.keys(historicalStats).length}`
-          );
-
-        } catch (e) {
-
-          console.error('過去データのインポートに失敗:', e);
-
-          alert(
-            '過去データのインポートに失敗しました。\n\n' +
-            e.message
-          );
-        }
-      };
       let totalDrafts = 0; // 集計用: 全ドラフト数
 
       // stats を読み込む（ルームとは別の共有ノード）
@@ -2854,7 +2272,7 @@
         await set(metaRef, curTotal + 1);
         totalDrafts = curTotal + 1;
       }
-
+      
 
       // 勝者確定時に wins/losses を記録
       async function saveWinStats(winTeam, actionsObj, seq) {
@@ -2920,212 +2338,64 @@
       }
 
 
-      // ── シリーズ管理 ──────────────────────────────────
-
+      // ── 勝敗・ゲーム完了管理 ─────────────────────────────
       function showDoneBar() {
         const bar = $('done-bar');
         if (!bar) return;
         bar.classList.add('on');
         const nextBtn = bar.querySelector('.btn-next');
-        if (nextBtn) {
-          // BO3/BO5 でシリーズ未決着ならボタン非表示（勝者選択で次のゲームへ移動）
-          nextBtn.style.display = (isBo() && !seriesDone) ? 'none' : '';
-        }
+        if (nextBtn) nextBtn.style.display = winnerSelected ? '' : 'none';
       }
 
       window.selectWinner = async (team) => {
-        const newScores = {blue: (seriesScores.blue || 0), red: (seriesScores.red || 0)};
-        newScores[team]++;
+        if (winnerSelected || !lastState?.done) return;
+
         // 勝敗統計を保存
         saveWinStats(team, actions, getSeq()).catch(console.error);
-        const tw = targetWins();
-        const sdone = newScores.blue >= tw || newScores.red >= tw;
 
-        // フィアレス: このゲームのPICKをゲーム別配列に追加
-        const newFU = {blue: [...(fearlessUsed.blue || [])], red: [...(fearlessUsed.red || [])]};
-        if (roomConfig.draftType === 'fearless') {
-          const gameBlue = [], gameRed = [];
-          getSeq().forEach((s, i) => {if (s.a === 'pick' && actions[i]) {if (s.t === 'blue') gameBlue.push(actions[i]); else gameRed.push(actions[i]);} });
-          newFU.blue.push(gameBlue);
-          newFU.red.push(gameRed);
-        }
-
-        if (sdone) {
-          await update(ref(db, `rooms/${roomId}`), {
-            scores: newScores,
-            seriesDone: true,
-            winnerSelected: true,
-            sideSelectPending: false,
-            fearlessUsed: newFU
-          });
-        } else {
-          // 負けたチームにサイド選択を促す（done 状態のままサイド選択待ち）
-          const loserTeam = team === 'blue' ? 'red' : 'blue';
-          await update(ref(db, `rooms/${roomId}`), {
-            scores: newScores,
-            sideSelectPending: true,
-            winnerSelected: true,
-            loser: loserTeam,
-            fearlessUsed: newFU,
-          });
-        }
-      };
-
-      // 負けたチームがサイドを選択
-      window.selectSide = async (side) => {
-        if (myRole !== (lastState?.loser)) return;
-        const ng = (currentGame || 1) + 1;
-        // side: 'blue'なら負けたチームが次にBlue、'red'ならRed
-        // blueFirstTeam を記録して次ゲームのサイドを確定
         await update(ref(db, `rooms/${roomId}`), {
-          currentGame: ng,
-          nextBlue: side === 'blue' ? lastState?.loser : (lastState?.loser === 'blue' ? 'red' : 'blue'),
-          sideSelectPending: false,
-          loser: null,
-          step: 0,
-          actions: null,
-          started: false,
-          done: false,
-          hover: null,
-          bgmIndex: null,
-          'ready/blue': false,
-          'ready/red': false,
-          timerStart: null,
+          winner: team,
+          winnerSelected: true
         });
-        selected = null;
-        prevActionsLen = -1;
-        stopBgm();
       };
 
-      // ── シリーズインジケーター描画 ──────────────────────
-      function renderSeriesIndicator() {
-        const wrap = $('series-wrap');
-        if (!wrap) return;
-        if (!isBo()) {wrap.classList.remove('on'); return;}
-        wrap.classList.add('on');
-        const lbl = $('sgame-lbl');
-        if (lbl) lbl.textContent = seriesDone ? 'SERIES END' : `GAME ${currentGame || 1}`;
-        const dotsEl = $('series-dots');
-        if (!dotsEl) return;
-        const tw = targetWins();
-        let html = '';
-        // Blue dots
-        for (let i = 0; i < tw; i++) {
-          html += `<div class="sdot${i < (seriesScores.blue || 0) ? ' bw' : ''}"></div>`;
-        }
-        html += '<div class="ssep"></div>';
-        // Red dots
-        for (let i = 0; i < tw; i++) {
-          html += `<div class="sdot${i < (seriesScores.red || 0) ? ' rw' : ''}"></div>`;
-        }
-        dotsEl.innerHTML = html;
-      }
-
-      // ── フィアレスパネル描画 ─────────────────────────────
-      function renderFearlessPanel() {
-        const fpb = $('fp-blue'), fpr = $('fp-red');
-        if (!fpb || !fpr) return;
-        const isFearless = roomConfig.draftType === 'fearless';
-        fpb.classList.toggle('visible', isFearless);
-        fpr.classList.toggle('visible', isFearless);
-        if (!isFearless) return;
-
-        // fearlessUsed はゲームごとの2D配列: [[g1c1,g1c2,...],[g2c1,...]]
-        const renderPanel = (el, gamesList) => {
-          el.innerHTML = '';
-          // Firebase はarrayをobjectに変換するため正規化
-          const rawList = Array.isArray(gamesList) ? gamesList : Object.values(gamesList || {});
-          const games = rawList.map(g => Array.isArray(g) ? g : (g && typeof g === 'object' ? Object.values(g) : [])).filter(g => g.length > 0);
-          games.forEach((champs, gi) => {
-            if (!champs || !champs.length) return;
-            const block = document.createElement('div');
-            block.className = 'fp-game-block';
-            const lbl = document.createElement('div');
-            lbl.className = 'fp-game-lbl';
-            lbl.textContent = `G${gi + 1}`;
-            block.appendChild(lbl);
-            const row = document.createElement('div');
-            row.className = 'fp-game-row';
-            champs.forEach(id => {
-              if (!champMap[id]) return;
-              const w = document.createElement('div');
-              w.className = 'fp-champ-wrap';
-              w.title = champMap[id].name;
-              const img = document.createElement('img');
-              img.src = champMap[id].img;
-              img.className = 'fp-champ';
-              w.appendChild(img);
-              row.appendChild(w);
-            });
-            block.appendChild(row);
-            el.appendChild(block);
-            // ゲーム間の区切り
-            if (gi < games.length - 1) {
-              const div = document.createElement('div');
-              div.className = 'fp-divider';
-              el.appendChild(div);
-            }
-          });
-        };
-        renderPanel(fpb, fearlessUsed.blue || []);
-        renderPanel(fpr, fearlessUsed.red || []);
-      }
-
-      // ── シリーズ完了ドーバー ─────────────────────────────
-      // seriesDone になったら done-bar のラベルを書き換える
-      // render() の done 処理に割り込み
+      // 勝敗選択後だけ「次のゲーム」を表示
       const _origDoneBarCheck = () => {
         const db_el = $('done-bar');
         if (!db_el || !db_el.classList.contains('on')) return;
-        const lbl = $('done-bar') && db_el.querySelector('.done-bar-label');
+        const lbl = db_el.querySelector('.done-bar-label');
         const nextBtn = $('btn-next');
-        if (isBo()) {
-          // BO時: seriesDone になるまで「次のゲーム」を隠す
-          if (nextBtn) nextBtn.style.display = seriesDone ? '' : 'none';
-          if (seriesDone && lbl) {
-            const winner = (seriesScores.blue || 0) > (seriesScores.red || 0) ? '🔵 Blue' : '🔴 Red';
-            lbl.textContent = `${winner} WIN  ${seriesScores.blue || 0} - ${seriesScores.red || 0}`;
+        const wa = $('winner-area');
+
+        if (nextBtn) nextBtn.style.display = winnerSelected ? '' : 'none';
+        if (wa) wa.style.display = winnerSelected ? 'none' : 'flex';
+
+        if (lbl) {
+          if (winnerSelected && lastState?.winner) {
+            lbl.textContent = lastState.winner === 'blue' ? '🔵 BLUE WIN' : '🔴 RED WIN';
+          } else {
+            lbl.textContent = 'SELECT WINNER';
           }
-        } else {
-          // BO1: 常に表示
-          if (nextBtn) nextBtn.style.display = '';
         }
       };
-      // render後に呼ぶ
-      const _origRender = window._render || null;
 
       window.goNew = async () => {
-
-        // BO3 / BO5の場合
-        // 今のゲームの勝敗を選択していなければ進ませない
-        if (isBo() && !winnerSelected) {
+        // 勝敗未選択なら次のゲームへ進ませない
+        if (!winnerSelected) {
           toast('先に勝敗を選択してください');
           return;
         }
 
         const nextId = genId();
-
         if (db && roomId) {
-          try {
-            await update(ref(db, `rooms/${roomId}`), {
-              nextRoom: nextId
-            });
-          } catch (e) {
-            console.error(e);
-            return;
-          }
-
+          try { await update(ref(db, `rooms/${roomId}`), {nextRoom: nextId}); } catch (e) { console.error(e); return; }
           setTimeout(async () => {
-            try {
-              await remove(ref(db, `rooms/${roomId}`));
-            } catch (e) {
-              console.error(e);
-            }
+            try { await remove(ref(db, `rooms/${roomId}`)); } catch { }
           }, 2000);
         }
-
         location.href = `?room=${nextId}`;
       };
+
       function loadConfig() {try {return JSON.parse(localStorage.getItem('lol-fb-cfg') || 'null');} catch {return null;} }
       window.saveFirebaseConfig = () => {
         const v = k => $(k).value.trim();
@@ -3221,23 +2491,10 @@
           if (!data.started && !data.done) {
             const db_el = $('done-bar'); if (db_el) db_el.classList.remove('on');
             const to = $('timeout-ov'); if (to) to.classList.remove('on');
-            selected = null; prevActionsLen = -1;
-          }
-          // nextBlue: 次のゲームのサイドをmyRoleに反映（1回だけ適用して即削除）
-          if (data.nextBlue && !data.started && (myRole === 'blue' || myRole === 'red')) {
-            const nextRole = (data.nextBlue === myRole) ? 'blue' : 'red';
-            myRole = nextRole;
-            if (myRole === 'blue') {$('bans-glow-blue').classList.add('on'); $('bans-glow-red').classList.remove('on');}
-            else {$('bans-glow-red').classList.add('on'); $('bans-glow-blue').classList.remove('on');}
-            // 適用後すぐにFirebaseから削除して再適用を防ぐ
-            update(ref(db, `rooms/${roomId}`), {nextBlue: null}).catch(() => { });
+            selected = null; prevActionsLen = -1; winnerSelected = false;
           }
           curStep = data.step || 0; actions = data.actions || {}; started = data.started || false; readyState = data.ready || {blue: false, red: false};
-          if (data.config) roomConfig = data.config;
-          currentGame = data.currentGame || 1;
-          seriesScores = data.scores || {blue: 0, red: 0};
-          fearlessUsed = data.fearlessUsed || {blue: [], red: []};
-          seriesDone = data.seriesDone || false;
+          if (data.config) roomConfig = {mode: 'bo1', draftType: 'tournament'};
           winnerSelected = data.winnerSelected || false;
           // BGMインデックス同期: bgmIndexが来たらまだ再生していなければ再生
           if (typeof data.bgmIndex === 'number') {
@@ -3247,7 +2504,6 @@
           } else if (!data.started && bgmNodes.length > 0) {
             stopBgm(); // ゲームリセット時にBGM停止
           }
-          // sideSelectPending は lastState 経由で参照するので不要
           const cur = getSeq()[curStep];
           if (cur && myRole === cur.t) {
             // 自分のターン: Firebase hover より local selected を優先
@@ -3311,20 +2567,16 @@
           }
         });
 
-        // Firebase は配列をオブジェクト({0:[...],1:[...]})に変換するので Object.values で対応
-        const fearlessAll = getFearlessAll();
         document.querySelectorAll('.cc').forEach(el => {
           const id = el.dataset.id;
           el.classList.remove('used', 'nc', 'sel');
-          if (used.has(id) || fearlessAll.has(id)) {el.classList.add('used'); return;}
+          if (used.has(id)) {el.classList.add('used'); return;}
           if (!started || done) {el.classList.add('nc'); return;}
           if (id === selected) el.classList.add('sel');
           const cur = getSeq()[curStep]; if (!cur || myRole !== cur.t) el.classList.add('nc');
         });
 
         const ph = $('dh-phase'), st = $('dh-status');
-        renderSeriesIndicator();
-        renderFearlessPanel();
         if (!started) {ph.textContent = '—'; st.textContent = 'WAITING FOR DRAFTER'; st.className = 'dh-status'; $('bans-lbl').textContent = 'BANS';}
         else if (done) {
           ph.textContent = 'COMPLETED'; st.textContent = 'DRAFT COMPLETE'; st.className = 'dh-status'; $('bans-lbl').textContent = 'BANS';
@@ -3419,28 +2671,15 @@
         }
         if (done) {
           ac.innerHTML = '';
-          // 勝者選択エリアの表示制御
           const wa = $('winner-area');
-          const ssa = $('side-select-area');
           if (wa) {
-            // 勝者選択: BO かつ未決着 かつ自分のターン（どちらかのプレイヤー）
-            const showWinner = !seriesDone && !lastState?.sideSelectPending && (myRole === 'blue' || myRole === 'red');
-            wa.style.display = showWinner ? 'flex' : 'none';
-          }
-          // サイド選択: 負けたチームにのみ表示
-          if (ssa) {
-            const ssp = lastState?.sideSelectPending;
-            const loser = lastState?.loser;
-            const showSide = ssp && (myRole === loser);
-            ssa.style.display = showSide ? 'flex' : 'none';
-            if (ssa.style.display === 'flex' && wa) wa.style.display = 'none';
+            wa.style.display = winnerSelected ? 'none' : 'flex';
           }
           return;
         }
-        // done でないとき winner/side エリアを隠す
-        const _wa2 = $('winner-area'), _ssa2 = $('side-select-area');
+        // done でないとき勝者選択エリアを隠す
+        const _wa2 = $('winner-area');
         if (_wa2) _wa2.style.display = 'none';
-        if (_ssa2) _ssa2.style.display = 'none';
 
         const cur = SEQ[curStep];
         if (myRole === 'spectator' || myRole !== cur.t) {
@@ -3456,16 +2695,6 @@
     <button class="conf-btn" ${champ ? '' : 'disabled'} onclick="confirmAction()">
       ${cur.a === 'ban' ? 'BAN 確定' : 'PICK 確定'}
     </button>`;
-      }
-
-
-      function getFearlessAll() {
-        const normFU = arr => {
-          if (!arr) return [];
-          const v = Array.isArray(arr) ? arr : Object.values(arr);
-          return v.flatMap(x => Array.isArray(x) ? x : (typeof x === 'object' && x ? Object.values(x) : [x]));
-        };
-        return new Set([...normFU(fearlessUsed.blue), ...normFU(fearlessUsed.red)]);
       }
 
 
@@ -3506,7 +2735,6 @@
         if (!started || curStep >= 20) return;
         const cur = getSeq()[curStep]; if (!cur || myRole !== cur.t) return;
         const used = new Set(Object.values(actions).filter(Boolean)); if (used.has(id)) return;
-        if (roomConfig.draftType === 'fearless' && getFearlessAll().has(id)) return;
         selected = id;
         document.querySelectorAll('.cc').forEach(el => el.classList.toggle('sel', el.dataset.id === id));
         // Firebase に hover を書き込む → 相手にも見える
@@ -3518,7 +2746,6 @@
         const cur = getSeq()[curStep]; if (!cur || myRole !== cur.t) return;
         const used = new Set(Object.values(actions).filter(Boolean));
         if (used.has(selected)) {toast('そのチャンピオンはすでに使われています'); return;}
-        if (roomConfig.draftType === 'fearless' && getFearlessAll().has(selected)) {toast('このチャンピオンはフィアレスBANされています'); selected = null; return;}
         const ns = curStep + 1;
         const seqLen = getSeq().length;
         await update(ref(db, `rooms/${roomId}`), {[`actions/${curStep}`]: selected, step: ns, done: ns >= seqLen, hover: null, timerStart: Date.now()});
