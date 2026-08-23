@@ -1511,7 +1511,7 @@
     }
 
     /* ── チャンピオン統計オーバーレイ ── */
-        .pick-stats-overlay {
+    .pick-stats-overlay {
       position: absolute;
       top: 0;
       bottom: 0;
@@ -2182,6 +2182,7 @@
 
       let curStep = 0, actions = {}, started = false, readyState = {blue: false, red: false};
       let selected = null, roleFilter = 'all', lastState = null;
+      let isInitialRender = true;
       let timerInterval = null, timerSec = 0, timerStep = -1;
       let prevActionsLen = -1; // SFX用: 前フレームのアクション数
 
@@ -2406,7 +2407,7 @@
         await set(metaRef, curTotal + 1);
         totalDrafts = curTotal + 1;
       }
-      
+
 
       // 勝者確定時に wins/losses を記録
       async function saveWinStats(winTeam, actionsObj, seq) {
@@ -2522,9 +2523,9 @@
 
         const nextId = genId();
         if (db && roomId) {
-          try { await update(ref(db, `rooms/${roomId}`), {nextRoom: nextId}); } catch (e) { console.error(e); return; }
+          try {await update(ref(db, `rooms/${roomId}`), {nextRoom: nextId});} catch (e) {console.error(e); return;}
           setTimeout(async () => {
-            try { await remove(ref(db, `rooms/${roomId}`)); } catch { }
+            try {await remove(ref(db, `rooms/${roomId}`));} catch { }
           }, 2000);
         }
         location.href = `?room=${nextId}`;
@@ -2645,6 +2646,7 @@
             selected = data.hover || null;
           }
           lastState = data; render(data);
+          isInitialRender = false;
         });
       }
 
@@ -2770,9 +2772,15 @@
         if (cid) cls += ' filled';
         else if (isGhost) cls += ' ghost';
         else if (isActive) cls += ' active-slot';
+
         const wasEmpty = !prevCls.includes('filled');
-        if (cid && wasEmpty) {
-          cls += ' flash'; setTimeout(() => sl.classList.remove('flash'), 600);
+
+        // 新しくPICKされたときだけ演出する
+        // 初回Firebase読み込み時の既存PICKでは演出しない
+        if (cid && wasEmpty && started && !isInitialRender) {
+          cls += ' flash';
+          setTimeout(() => sl.classList.remove('flash'), 600);
+
           // 統計オーバーレイ表示
           setTimeout(() => showPickStats(cid, sl), 350);
         }
