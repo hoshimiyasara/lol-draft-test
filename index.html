@@ -3088,15 +3088,35 @@
       const _origRender = window._render || null;
 
       window.goNew = async () => {
+
+        // BO3 / BO5の場合
+        // 勝敗がまだ選択されていなければ進ませない
+        if (isBo() && !seriesDone) {
+          toast('先に勝敗を選択してください');
+          return;
+        }
+
         const nextId = genId();
-        // nextRoom を書き込む → 全員が検知してリダイレクト
+
         if (db && roomId) {
-          try {await update(ref(db, `rooms/${roomId}`), {nextRoom: nextId});} catch { }
-          // 少し待ってから旧ルームを削除
+          try {
+            await update(ref(db, `rooms/${roomId}`), {
+              nextRoom: nextId
+            });
+          } catch (e) {
+            console.error(e);
+            return;
+          }
+
           setTimeout(async () => {
-            try {await remove(ref(db, `rooms/${roomId}`));} catch { }
+            try {
+              await remove(ref(db, `rooms/${roomId}`));
+            } catch (e) {
+              console.error(e);
+            }
           }, 2000);
         }
+
         location.href = `?room=${nextId}`;
       };
 
