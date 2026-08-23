@@ -1662,224 +1662,224 @@
 
 
     /* ── チャンピオン統計オーバーレイ ── */
-.pick-stats-overlay {
-  position: absolute;
-  top: 0;
-  bottom: 0;
+    .pick-stats-overlay {
+      position: absolute;
+      top: 0;
+      bottom: 0;
 
-  /* 横からスライドするための幅 */
-  width: 100%;
+      /* 横からスライドするための幅 */
+      width: 100%;
 
-  z-index: 20;
+      z-index: 20;
 
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: stretch;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: stretch;
 
-  background: #ffffff;
-  color: #111;
+      background: #ffffff;
+      color: #111;
 
-  pointer-events: none;
+      pointer-events: none;
 
-  /* 初期状態：Blueは左から、Redは右から */
-  transform: translateX(-100%);
+      /* 初期状態：Blueは左から、Redは右から */
+      transform: translateX(-100%);
 
-  animation:
-      stats-slide-in-blue .8s cubic-bezier(.16, 1, .3, 1) forwards;
+      animation:
+        stats-slide-in-blue .8s cubic-bezier(.16, 1, .3, 1) forwards;
 
-  overflow: hidden;
-}
+      overflow: hidden;
+    }
 
 
-/* ─────────────────────────────────────
+    /* ─────────────────────────────────────
    Blue Side
    左 → 右
    ───────────────────────────────────── */
 
-.blue-tp .pick-stats-overlay {
-  left: 0;
-  right: auto;
+    .blue-tp .pick-stats-overlay {
+      left: 0;
+      right: auto;
 
-  transform: translateX(-100%);
+      transform: translateX(-100%);
 
-  animation:
-    stats-slide-in-blue .8s cubic-bezier(.16, 1, .3, 1) forwards;
-}
+      animation:
+        stats-slide-in-blue .8s cubic-bezier(.16, 1, .3, 1) forwards;
+    }
 
 
-/* ─────────────────────────────────────
+    /* ─────────────────────────────────────
    Red Side
    右 → 左
    ───────────────────────────────────── */
 
-.red-tp .pick-stats-overlay {
-  right: 0;
-  left: auto;
+    .red-tp .pick-stats-overlay {
+      right: 0;
+      left: auto;
 
-  transform: translateX(100%);
+      transform: translateX(100%);
 
-  animation:
-    stats-slide-in-red .8s cubic-bezier(.16, 1, .3, 1) forwards;
-}
-
-
-/* Blue：左から入る */
-@keyframes stats-slide-in-blue {
-  0% {
-    transform: translateX(-100%);
-  }
-
-  100% {
-    transform: translateX(0);
-  }
-}
+      animation:
+        stats-slide-in-red .8s cubic-bezier(.16, 1, .3, 1) forwards;
+    }
 
 
-/* Red：右から入る */
-@keyframes stats-slide-in-red {
-  0% {
-    transform: translateX(100%);
-  }
+    /* Blue：左から入る */
+    @keyframes stats-slide-in-blue {
+      0% {
+        transform: translateX(-100%);
+      }
 
-  100% {
-    transform: translateX(0);
-  }
-}
+      100% {
+        transform: translateX(0);
+      }
+    }
 
 
-/* ─────────────────────────────────────
+    /* Red：右から入る */
+    @keyframes stats-slide-in-red {
+      0% {
+        transform: translateX(100%);
+      }
+
+      100% {
+        transform: translateX(0);
+      }
+    }
+
+
+    /* ─────────────────────────────────────
    フェードアウトではなく
    入ってきた方向へ戻す
    ───────────────────────────────────── */
 
-.pick-stats-overlay.out {
-  animation-duration: .35s;
-  animation-timing-function: cubic-bezier(.55,.08,.68,.53);
-}
+    .pick-stats-overlay.out {
+      animation-duration: .35s;
+      animation-timing-function: cubic-bezier(.55, .08, .68, .53);
+    }
 
-.blue-tp .pick-stats-overlay.out {
-  animation-name: stats-slide-out-blue;
-}
+    .blue-tp .pick-stats-overlay.out {
+      animation-name: stats-slide-out-blue;
+    }
 
-.red-tp .pick-stats-overlay.out {
-  animation-name: stats-slide-out-red;
-}
-
-
-@keyframes stats-slide-out-blue {
-  0% {
-    transform: translateX(0);
-  }
-
-  100% {
-    transform: translateX(-100%);
-  }
-}
+    .red-tp .pick-stats-overlay.out {
+      animation-name: stats-slide-out-red;
+    }
 
 
-@keyframes stats-slide-out-red {
-  0% {
-    transform: translateX(0);
-  }
+    @keyframes stats-slide-out-blue {
+      0% {
+        transform: translateX(0);
+      }
 
-  100% {
-    transform: translateX(100%);
-  }
-}
+      100% {
+        transform: translateX(-100%);
+      }
+    }
 
 
-/* ═══════════════════════════════════════════════════
+    @keyframes stats-slide-out-red {
+      0% {
+        transform: translateX(0);
+      }
+
+      100% {
+        transform: translateX(100%);
+      }
+    }
+
+
+    /* ═══════════════════════════════════════════════════
    チャンピオン名
    ═══════════════════════════════════════════════════ */
 
-.pso-name {
-  position: relative;
+    .pso-name {
+      position: relative;
 
-  padding: 14px 12px 10px;
+      padding: 14px 12px 10px;
 
-  font-size: 1.2rem;
-  font-weight: 800;
+      font-size: 1.2rem;
+      font-weight: 800;
 
-  color: #111;
+      color: #111;
 
-  letter-spacing: 1.5px;
-  text-align: left;
+      letter-spacing: 1.5px;
+      text-align: left;
 
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
 
-  border-bottom: 1px solid #e5e5e5;
-}
+      border-bottom: 1px solid #e5e5e5;
+    }
 
 
-/* ═══════════════════════════════════════════════════
+    /* ═══════════════════════════════════════════════════
    統計を縦に並べる
    ═══════════════════════════════════════════════════ */
 
-.pso-row {
-  display: flex;
-  flex-direction: column;
+    .pso-row {
+      display: flex;
+      flex-direction: column;
 
-  width: 100%;
-  padding: 8px 12px 0;
+      width: 100%;
+      padding: 8px 12px 0;
 
-  gap: 0;
-}
-
-
-.pso-stat {
-  display: flex;
-  flex-direction: column;
-
-  align-items: flex-start;
-
-  padding: 8px 0 10px;
-
-  gap: 1px;
-}
+      gap: 0;
+    }
 
 
-/* 数値 */
-.pso-val {
-  order: 2;
+    .pso-stat {
+      display: flex;
+      flex-direction: column;
 
-  font-size: 1.7rem;
-  font-weight: 800;
+      align-items: flex-start;
 
-  line-height: 1;
+      padding: 8px 0 10px;
 
-  color: #111;
-
-  letter-spacing: .5px;
-}
+      gap: 1px;
+    }
 
 
-/* PICK% / BAN% / WIN% */
-.pso-lbl {
-  order: 1;
+    /* 数値 */
+    .pso-val {
+      order: 2;
 
-  font-size: .75rem;
-  font-weight: 700;
+      font-size: 1.7rem;
+      font-weight: 800;
 
-  color: #777;
+      line-height: 1;
 
-  letter-spacing: 1.5px;
+      color: #111;
 
-  text-transform: uppercase;
-}
+      letter-spacing: .5px;
+    }
 
 
-/* 区切り線 */
-.pso-sep {
-  width: 100%;
-  height: 1px;
+    /* PICK% / BAN% / WIN% */
+    .pso-lbl {
+      order: 1;
 
-  background: #e5e5e5;
+      font-size: .75rem;
+      font-weight: 700;
 
-  margin: 0;
-}
+      color: #777;
+
+      letter-spacing: 1.5px;
+
+      text-transform: uppercase;
+    }
+
+
+    /* 区切り線 */
+    .pso-sep {
+      width: 100%;
+      height: 1px;
+
+      background: #e5e5e5;
+
+      margin: 0;
+    }
 
     /* ── タイムアップ モーダル ── */
     .timeout-ov {
@@ -2589,6 +2589,246 @@
       // ════════════════════════════════════════════════════
       //  CHAMPION STATS
       // ════════════════════════════════════════════════════
+      // ════════════════════════════════════════════════════
+      //  過去PICK/BAN/WINデータ
+      // ════════════════════════════════════════════════════
+
+      const historicalStats = {
+
+        Urgot: {picks: 1, wins: 1, losses: 0, bans: 0},
+        Ahri: {picks: 14, wins: 5, losses: 9, bans: 3},
+        Ivern: {picks: 4, wins: 3, losses: 1, bans: 0},
+        Akali: {picks: 19, wins: 6, losses: 13, bans: 16},
+        Akshan: {picks: 3, wins: 1, losses: 2, bans: 0},
+        Azir: {picks: 4, wins: 2, losses: 2, bans: 3},
+        Ashe: {picks: 59, wins: 27, losses: 32, bans: 3},
+        Annie: {picks: 5, wins: 2, losses: 3, bans: 2},
+        Anivia: {picks: 2, wins: 0, losses: 2, bans: 0},
+        Aphelios: {picks: 25, wins: 10, losses: 15, bans: 2},
+        Amumu: {picks: 14, wins: 9, losses: 5, bans: 1},
+        Alistar: {picks: 23, wins: 12, losses: 11, bans: 1},
+        Ambessa: {picks: 23, wins: 7, losses: 16, bans: 4},
+        Evelynn: {picks: 4, wins: 3, losses: 1, bans: 7},
+        Illaoi: {picks: 47, wins: 25, losses: 22, bans: 130},
+        Irelia: {picks: 16, wins: 9, losses: 7, bans: 83},
+        Vi: {picks: 7, wins: 4, losses: 3, bans: 2},
+        Varus: {picks: 21, wins: 10, losses: 11, bans: 9},
+        Viego: {picks: 36, wins: 19, losses: 17, bans: 23},
+        MonkeyKing: {picks: 7, wins: 4, losses: 3, bans: 0},
+        Vayne: {picks: 31, wins: 16, losses: 15, bans: 20},
+        Vex: {picks: 5, wins: 2, losses: 3, bans: 0},
+        Velkoz: {picks: 45, wins: 26, losses: 19, bans: 26},
+        Udyr: {picks: 2, wins: 0, losses: 2, bans: 0},
+        Aatrox: {picks: 20, wins: 6, losses: 14, bans: 1},
+        Ekko: {picks: 19, wins: 10, losses: 9, bans: 4},
+        Ezreal: {picks: 35, wins: 11, losses: 24, bans: 2},
+        Elise: {picks: 1, wins: 0, losses: 1, bans: 0},
+        Aurora: {picks: 9, wins: 5, losses: 4, bans: 1},
+        Ornn: {picks: 59, wins: 30, losses: 29, bans: 19},
+        Olaf: {picks: 5, wins: 2, losses: 3, bans: 0},
+        Orianna: {picks: 13, wins: 5, losses: 8, bans: 9},
+        AurelionSol: {picks: 5, wins: 1, losses: 4, bans: 0},
+        Karthus: {picks: 9, wins: 3, losses: 6, bans: 2},
+        Kaisa: {picks: 25, wins: 12, losses: 13, bans: 2},
+        Kassadin: {picks: 14, wins: 8, losses: 6, bans: 8},
+        KSante: {picks: 6, wins: 0, losses: 6, bans: 1},
+        Cassiopeia: {picks: 3, wins: 1, losses: 2, bans: 0},
+        Khazix: {picks: 3, wins: 1, losses: 2, bans: 0},
+        Katarina: {picks: 36, wins: 14, losses: 22, bans: 90},
+        Camille: {picks: 13, wins: 4, losses: 9, bans: 4},
+        Galio: {picks: 43, wins: 22, losses: 21, bans: 70},
+        Kalista: {picks: 3, wins: 1, losses: 2, bans: 0},
+        Karma: {picks: 13, wins: 6, losses: 7, bans: 2},
+        Garen: {picks: 19, wins: 5, losses: 14, bans: 33},
+        Qiyana: {picks: 8, wins: 4, losses: 4, bans: 40},
+        Kindred: {picks: 10, wins: 2, losses: 8, bans: 2},
+        Quinn: {picks: 4, wins: 1, losses: 3, bans: 3},
+        Gwen: {picks: 26, wins: 10, losses: 16, bans: 18},
+        Gragas: {picks: 6, wins: 3, losses: 3, bans: 1},
+        Graves: {picks: 7, wins: 2, losses: 5, bans: 0},
+        Kled: {picks: 11, wins: 5, losses: 6, bans: 24},
+        Caitlyn: {picks: 27, wins: 12, losses: 15, bans: 5},
+        Kayle: {picks: 26, wins: 12, losses: 14, bans: 42},
+        Kayn: {picks: 21, wins: 8, losses: 13, bans: 4},
+        Kennen: {picks: 2, wins: 1, losses: 1, bans: 1},
+        Corki: {picks: 9, wins: 5, losses: 4, bans: 0},
+        KogMaw: {picks: 13, wins: 5, losses: 8, bans: 0},
+        Zaahen: {picks: 16, wins: 7, losses: 9, bans: 10},
+        Sion: {picks: 58, wins: 33, losses: 25, bans: 62},
+        Zyra: {picks: 8, wins: 3, losses: 5, bans: 0},
+        Sylas: {picks: 43, wins: 26, losses: 17, bans: 55},
+        Zac: {picks: 19, wins: 6, losses: 13, bans: 2},
+        Samira: {picks: 55, wins: 34, losses: 21, bans: 53},
+        Xayah: {picks: 46, wins: 25, losses: 21, bans: 7},
+        Shyvana: {picks: 8, wins: 6, losses: 2, bans: 3},
+        Sivir: {picks: 26, wins: 10, losses: 16, bans: 43},
+        Jayce: {picks: 3, wins: 3, losses: 0, bans: 0},
+        Shen: {picks: 22, wins: 10, losses: 12, bans: 17},
+        Ziggs: {picks: 31, wins: 14, losses: 17, bans: 231},
+        JarvanIV: {picks: 14, wins: 5, losses: 9, bans: 3},
+        Shaco: {picks: 26, wins: 12, losses: 14, bans: 48},
+        Jax: {picks: 16, wins: 6, losses: 10, bans: 10},
+        Janna: {picks: 1, wins: 0, losses: 1, bans: 0},
+        Zilean: {picks: 2, wins: 0, losses: 2, bans: 0},
+        Jhin: {picks: 63, wins: 32, losses: 31, bans: 3},
+        Jinx: {picks: 21, wins: 12, losses: 9, bans: 6},
+        Singed: {picks: 7, wins: 5, losses: 2, bans: 8},
+        XinZhao: {picks: 10, wins: 6, losses: 4, bans: 3},
+        Syndra: {picks: 17, wins: 6, losses: 11, bans: 17},
+        Swain: {picks: 52, wins: 25, losses: 27, bans: 31},
+        Skarner: {picks: 5, wins: 2, losses: 3, bans: 2},
+        Smolder: {picks: 31, wins: 18, losses: 13, bans: 19},
+        Thresh: {picks: 54, wins: 29, losses: 25, bans: 33},
+        Sejuani: {picks: 21, wins: 12, losses: 9, bans: 1},
+        Sett: {picks: 62, wins: 29, losses: 33, bans: 79},
+        Zed: {picks: 16, wins: 9, losses: 7, bans: 16},
+        Senna: {picks: 72, wins: 52, losses: 20, bans: 50},
+        Xerath: {picks: 88, wins: 48, losses: 40, bans: 87},
+        Seraphine: {picks: 29, wins: 15, losses: 14, bans: 2},
+        Zeri: {picks: 13, wins: 6, losses: 7, bans: 1},
+        Zoe: {picks: 20, wins: 11, losses: 9, bans: 15},
+        Sona: {picks: 9, wins: 4, losses: 5, bans: 0},
+        Soraka: {picks: 8, wins: 3, losses: 5, bans: 2},
+        Diana: {picks: 116, wins: 56, losses: 60, bans: 53},
+        TahmKench: {picks: 36, wins: 23, losses: 13, bans: 11},
+        Darius: {picks: 18, wins: 9, losses: 9, bans: 17},
+        Taric: {picks: 7, wins: 2, losses: 5, bans: 1},
+        Taliyah: {picks: 3, wins: 0, losses: 3, bans: 0},
+        Talon: {picks: 10, wins: 5, losses: 5, bans: 26},
+        Chogath: {picks: 45, wins: 27, losses: 18, bans: 53},
+        TwistedFate: {picks: 5, wins: 3, losses: 2, bans: 0},
+        Teemo: {picks: 13, wins: 9, losses: 4, bans: 12},
+        Twitch: {picks: 6, wins: 2, losses: 4, bans: 0},
+        Trundle: {picks: 45, wins: 18, losses: 27, bans: 13},
+        Tristana: {picks: 10, wins: 4, losses: 6, bans: 0},
+        Tryndamere: {picks: 4, wins: 1, losses: 3, bans: 0},
+        Draven: {picks: 3, wins: 0, losses: 3, bans: 1},
+        Gnar: {picks: 12, wins: 6, losses: 6, bans: 13},
+        Nasus: {picks: 31, wins: 18, losses: 13, bans: 14},
+        Naafiri: {picks: 19, wins: 8, losses: 11, bans: 6},
+        Nami: {picks: 13, wins: 11, losses: 2, bans: 0},
+        Neeko: {picks: 40, wins: 25, losses: 15, bans: 188},
+        Nilah: {picks: 26, wins: 17, losses: 9, bans: 14},
+        Nidalee: {picks: 5, wins: 2, losses: 3, bans: 2},
+        Nunu: {picks: 14, wins: 10, losses: 4, bans: 21},
+        Nautilus: {picks: 49, wins: 17, losses: 32, bans: 16},
+        Nocturne: {picks: 14, wins: 10, losses: 4, bans: 1},
+        Bard: {picks: 10, wins: 3, losses: 7, bans: 0},
+        Pyke: {picks: 16, wins: 1, losses: 15, bans: 7},
+        Heimerdinger: {picks: 13, wins: 9, losses: 4, bans: 20},
+        Pantheon: {picks: 9, wins: 3, losses: 6, bans: 5},
+        Viktor: {picks: 64, wins: 35, losses: 29, bans: 129},
+        Fiora: {picks: 20, wins: 11, losses: 9, bans: 34},
+        Fizz: {picks: 4, wins: 4, losses: 0, bans: 6},
+        Fiddlesticks: {picks: 5, wins: 1, losses: 4, bans: 0},
+        Hwei: {picks: 33, wins: 15, losses: 18, bans: 13},
+        Briar: {picks: 26, wins: 15, losses: 11, bans: 21},
+        Braum: {picks: 28, wins: 14, losses: 14, bans: 10},
+        Vladimir: {picks: 19, wins: 10, losses: 9, bans: 151},
+        Brand: {picks: 14, wins: 9, losses: 5, bans: 3},
+        Blitzcrank: {picks: 19, wins: 11, losses: 8, bans: 7},
+        Veigar: {picks: 49, wins: 21, losses: 28, bans: 66},
+        Hecarim: {picks: 8, wins: 1, losses: 7, bans: 3},
+        Belveth: {picks: 6, wins: 2, losses: 4, bans: 0},
+        Poppy: {picks: 18, wins: 9, losses: 9, bans: 1},
+        Volibear: {picks: 37, wins: 23, losses: 14, bans: 41},
+        Maokai: {picks: 48, wins: 23, losses: 25, bans: 14},
+        MasterYi: {picks: 34, wins: 15, losses: 19, bans: 33},
+        Malzahar: {picks: 30, wins: 15, losses: 15, bans: 83},
+        Malphite: {picks: 50, wins: 30, losses: 20, bans: 96},
+        MissFortune: {picks: 18, wins: 8, losses: 10, bans: 0},
+        Milio: {picks: 5, wins: 3, losses: 2, bans: 1},
+        DrMundo: {picks: 27, wins: 15, losses: 12, bans: 16},
+        Mel: {picks: 38, wins: 19, losses: 19, bans: 28},
+        Morgana: {picks: 13, wins: 7, losses: 6, bans: 2},
+        Mordekaiser: {picks: 40, wins: 22, losses: 18, bans: 75},
+        Yasuo: {picks: 24, wins: 14, losses: 10, bans: 260},
+        Yuumi: {picks: 13, wins: 10, losses: 3, bans: 0},
+        Yunara: {picks: 14, wins: 6, losses: 8, bans: 1},
+        Yone: {picks: 48, wins: 22, losses: 26, bans: 83},
+        Yorick: {picks: 42, wins: 27, losses: 15, bans: 67},
+        Ryze: {picks: 9, wins: 5, losses: 4, bans: 6},
+        Rakan: {picks: 7, wins: 3, losses: 4, bans: 3},
+        Lux: {picks: 16, wins: 8, losses: 8, bans: 0},
+        Rammus: {picks: 8, wins: 4, losses: 4, bans: 2},
+        Rumble: {picks: 3, wins: 3, losses: 0, bans: 0},
+        LeeSin: {picks: 12, wins: 6, losses: 6, bans: 1},
+        Riven: {picks: 14, wins: 3, losses: 11, bans: 17},
+        Lissandra: {picks: 13, wins: 10, losses: 3, bans: 32},
+        Lillia: {picks: 23, wins: 9, losses: 14, bans: 15},
+        Lucian: {picks: 9, wins: 7, losses: 2, bans: 1},
+        Leblanc: {picks: 12, wins: 5, losses: 7, bans: 12},
+        Lulu: {picks: 13, wins: 3, losses: 10, bans: 0},
+        Leona: {picks: 53, wins: 31, losses: 22, bans: 31},
+
+      };
+      // ════════════════════════════════════════════════════
+      //  過去データをFirebaseへ一括投入
+      // ════════════════════════════════════════════════════
+
+      window.importHistoricalStats = async function () {
+
+        if (!db) {
+          console.error('Firebaseがまだ初期化されていません');
+          alert('Firebaseがまだ初期化されていません。少し待ってから実行してください。');
+          return;
+        }
+
+        const TOTAL_GAMES = 356;
+
+        const confirmed = confirm(
+          `過去データ ${TOTAL_GAMES}ゲーム分をFirebaseへ登録します。\n\n` +
+          `現在の stats/champs を上書きします。\n` +
+          `本当に実行しますか？`
+        );
+
+        if (!confirmed) return;
+
+        try {
+
+          // champsを一度丸ごと置き換える
+          await set(
+            ref(db, 'stats/champs'),
+            historicalStats
+          );
+
+          // 総ゲーム数を設定
+          await set(
+            ref(db, 'stats/meta/totalDrafts'),
+            TOTAL_GAMES
+          );
+
+          // インポート日時を記録
+          await set(
+            ref(db, 'stats/meta/historicalImportedAt'),
+            new Date().toISOString()
+          );
+
+          // 現在のページでも即座に反映
+          totalDrafts = TOTAL_GAMES;
+
+          console.log('================================');
+          console.log('過去データのインポート完了');
+          console.log('総ゲーム数:', TOTAL_GAMES);
+          console.log('チャンピオン数:', Object.keys(historicalStats).length);
+          console.log('================================');
+
+          alert(
+            `過去データのインポートが完了しました！\n\n` +
+            `総ゲーム数: ${TOTAL_GAMES}\n` +
+            `登録チャンピオン数: ${Object.keys(historicalStats).length}`
+          );
+
+        } catch (e) {
+
+          console.error('過去データのインポートに失敗:', e);
+
+          alert(
+            '過去データのインポートに失敗しました。\n\n' +
+            e.message
+          );
+        }
+      };
       let totalDrafts = 0; // 集計用: 全ドラフト数
 
       // stats を読み込む（ルームとは別の共有ノード）
@@ -2613,7 +2853,7 @@
         await set(metaRef, curTotal + 1);
         totalDrafts = curTotal + 1;
       }
-      
+
 
       // 勝者確定時に wins/losses を記録
       async function saveWinStats(winTeam, actionsObj, seq) {
