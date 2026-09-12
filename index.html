@@ -2302,7 +2302,7 @@
                   if (!used.has(selected)) {
                     const ns = curStep + 1;
                     const seqLen2 = getSeq().length;
-                    await update(ref(db, `rooms/${roomId}`), {[`actions/${curStep}`]: selected, step: ns, done: ns >= seqLen2, hover: null, timerStart: Date.now()});
+                    await update(ref(db, `rooms/${roomId}`), {[`actions/${curStep}`]: selected, step: ns, done: ns >= seqLen2, hover: null, timerStart: null});
                     selected = null;
                   }
                 } else {
@@ -2341,7 +2341,7 @@
         $('timeout-ov').classList.remove('on');
         selected = null;
         timerStep = -1; // タイマーを強制リセット → startTimer が再発火
-        if (db && roomId) update(ref(db, `rooms/${roomId}`), {hover: null, timerStart: Date.now()});
+        if (db && roomId) update(ref(db, `rooms/${roomId}`), {hover: null, timerStart: null});
       };
 
       window.timeoutRestart = async () => {
@@ -2978,11 +2978,15 @@
           stopTimer();
         } else {
           const cur = getSeq()[curStep];
-          const ts = data.timerStart || null;
-          if (cur && timerStep !== curStep && ts) {
-            startTimer(curStep, cur.t, ts);
-          }
-        }
+         const ts = data.timerStart || null;
+if(cur && timerStep!==curStep){
+  if(ts){
+    startTimer(curStep, cur.t, ts);
+  } else if(myRole === cur.t){
+    // 自分のターンかつtimerStartがなければ今すぐ書き込む
+    update(ref(db,`rooms/${roomId}`),{timerStart:{'.sv':'timestamp'}});
+  }
+}
         _origDoneBarCheck();
       }
 
@@ -3130,7 +3134,7 @@
         if (used.has(selected)) {toast('そのチャンピオンはすでに使われています'); return;}
         const ns = curStep + 1;
         const seqLen = getSeq().length;
-        await update(ref(db, `rooms/${roomId}`), {[`actions/${curStep}`]: selected, step: ns, done: ns >= seqLen, hover: null, timerStart: Date.now()});
+        await update(ref(db, `rooms/${roomId}`), {[`actions/${curStep}`]: selected, step: ns, done: ns >= seqLen, hover: null, timerStart: null});
         selected = null;
       };
 
