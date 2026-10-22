@@ -5,6 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LoL Draft Tool</title>
+  <meta name="theme-color" content="#080e18">
+  <meta name="description" content="League of Legends リアルタイム BAN / PICK ツール。">
   <meta property="og:title" content="LoL Draft Tool">
   <meta property="og:description" content="League of Legends 5v5 リアルタイムドラフトツール。トーナメントドラフト対応。">
   <meta property="og:type" content="website">
@@ -727,9 +729,8 @@
       gap: 3px;
     }
 
-    #br-blue {
-      flex-direction: row-reverse;
-    }
+    #br-blue { flex-direction: row; }
+    #br-red { flex-direction: row-reverse; }
 
     .bans-lbl {
       flex: 1;
@@ -839,9 +840,7 @@
       min-width: 0;
     }
 
-    .blue-tp {
-      flex-direction: row-reverse;
-    }
+    .blue-tp, .red-tp { flex-direction: row; }
 
     .pick-slot-h {
       flex: 1;
@@ -1927,13 +1926,373 @@
       }
     }
   </style>
+  <style id="draft-polish">
+    /* Keep the original geometry: 56px header, 38px timer, centered 860px pool,
+       80px bans, 280px picks, and a 190px central action area. */
+    :root {
+      --text: #8390a3;
+      --text2: #aeb9ca;
+      --text3: #e3eaf3;
+      --active: var(--gold);
+    }
+    html, body { font-size: clamp(12px, 1.3vh, 14px); }
+    button, input { font-family: inherit; }
+    button { touch-action: manipulation; }
+    button:focus-visible, a:focus-visible, input:focus-visible {
+      outline: 2px solid var(--gold);
+      outline-offset: 3px;
+    }
+    [hidden] { display: none !important; }
+    #s-draft { background: var(--bg); }
+    #s-draft[data-team="blue"] { --active: var(--blue); }
+    #s-draft[data-team="red"] { --active: var(--red); }
+    .dh-team-name { font-size: 1.2rem; }
+    .dh-team-side { color: var(--text); font-size: 9px; }
+    .dh-phase { color: var(--gold); font-size: 9px; }
+    .dh-status { font-size: 11px; }
+    .timer-num { font-variant-numeric: tabular-nums; }
+    .timer-bar-l, .timer-bar-r { transition: none; }
+    .champion-workspace, .champion-library {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      min-width: 0;
+      overflow: hidden;
+    }
+    .fb { min-height: 36px; gap: 4px; }
+    .rtab { font-size: 11px; padding: 5px 10px; }
+    .rtab.on, .rtab.all.on {
+      background: var(--bg4);
+      border-color: var(--text2);
+      color: var(--text3);
+    }
+    .sb { height: 26px; width: 150px; font-size: 11px; }
+    .audio-btn { height: 26px; padding: 0 10px; font-size: 12px; }
+    .cw { scrollbar-width: thin; scrollbar-color: var(--bdr2) transparent; }
+    .cg { max-width: 860px; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); }
+    .cc { padding: 0; font: inherit; }
+    .cc .cn { font-size: 11px; padding: 2px 2px 4px; color: var(--text2); }
+    .cc:hover:not(.used):not(.nc) { transform: translateY(-2px); }
+    .cc.sel {
+      border-color: var(--active) !important;
+      transform: translateY(-2px);
+      box-shadow: 0 0 12px color-mix(in srgb, var(--active) 25%, transparent);
+    }
+    .cc.sel::after {
+      content: '✓';
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      background: var(--active);
+      color: #fff;
+      width: 18px;
+      height: 18px;
+      font-size: 12px;
+      line-height: 18px;
+      border-radius: 2px;
+    }
+    .cc.used { opacity: .25; }
+    .cc.nc { cursor: default; }
+    .empty-search { margin: auto; padding: 35px 16px; text-align: center; }
+    .empty-search > span { display: block; color: var(--gold); font-size: 30px; margin-bottom: 12px; }
+    .empty-search b { font-size: 13px; color: var(--text3); }
+    .empty-search p { font-size: 11px; margin: 10px 0 16px; }
+    .empty-search button, .display-toggle {
+      border: 1px solid var(--bdr2);
+      background: var(--bg2);
+      border-radius: 3px;
+      color: var(--text2);
+      padding: 7px 12px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .bans-strip { height: 80px; }
+    .bans-lbl { font-size: 9px; }
+    .ban-sl.act { border-color: var(--active); animation: slot-breathe 1.5s ease infinite; }
+    .ban-sl.impact { animation: ban-impact .45s ease; }
+    .ban-sl.banned img { filter: saturate(.6); }
+    .picks-row { height: 280px; }
+    .blue-tp, .red-tp, #br-blue { flex-direction: row; }
+    #br-red { flex-direction: row-reverse; }
+    .picks-mid { width: 190px; }
+    .pick-name { font-size: 13px; bottom: 12px; padding: 0 6px; }
+    .pick-num { font-size: 9px; top: 6px; left: 6px; }
+    .pick-art { background-size: cover !important; background-position: center 16% !important; }
+    .pick-slot-h.flash .pick-art { animation: pick-reveal .55s ease-out; }
+    .pick-fade { background: linear-gradient(to bottom, transparent 30%, #06090edb 100%); }
+    .action-eyebrow { font-size: 9px; letter-spacing: 1.4px; color: var(--active); }
+    .action-hint { font-size: 10px; text-align: center; color: var(--text); line-height: 1.7; }
+    .prev-name, .prev-empty { font-size: 11px; }
+    .prev-box { min-height: 40px; }
+    .conf-btn { background: var(--active); font-size: 12px; min-height: 34px; }
+    .conf-btn:hover:not(:disabled) { filter: brightness(1.15); background: var(--active); }
+    .ready-btn { font-size: 12px; min-height: 32px; }
+    .rs-row { font-size: 10px; }
+    .wait-msg { animation: none; font-size: 11px; color: var(--text2); }
+    .wait-orbit {
+      width: 24px; height: 24px; border: 1px solid var(--bdr2);
+      border-top-color: var(--active); border-radius: 50%;
+      animation: spin 2s linear infinite; margin: 0 auto 12px;
+    }
+    .complete-mark { font-size: 32px; color: var(--gold); }
+    .complete-caption { font-size: 10px; letter-spacing: 1px; color: var(--gold); }
+    .done-bar-label, .btn-sm { font-size: 11px; }
+    .pso-name { font-size: 12px; }
+    .pso-val { font-size: 16px; }
+    .audio-panel {
+      top: 128px; right: 12px; left: auto; bottom: auto;
+      width: 350px; max-width: calc(100vw - 24px); min-width: 0;
+      padding: 18px; border-radius: 4px; box-shadow: 0 12px 35px #0008;
+    }
+    .audio-panel-title { display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--text3); }
+    .audio-close { border: 0; background: none; color: var(--text2); font-size: 22px; cursor: pointer; }
+    .audio-help { font-size: 11px; line-height: 1.7; color: var(--text); margin-bottom: 12px; }
+    .audio-section-lbl { font-size: 10px; }
+    .audio-lbl { font-size: 11px; }
+    .audio-val, .audio-mute { font-size: 10px; }
+    .audio-row input { min-width: 0; }
+    .panel-extras { display: grid; gap: 12px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--bdr2); font-size: 11px; }
+    .panel-room { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .panel-room b { color: var(--text3); letter-spacing: 2px; }
+    .panel-meta { display: flex; justify-content: space-between; gap: 12px; font-size: 10px; color: var(--text); }
+    .status-dot { display: inline-block; width: 5px; height: 5px; margin-right: 6px; background: #6cc6a0; border-radius: 50%; }
+    .connection-status.offline .status-dot { background: var(--gold); }
+    .display-toggle { text-align: left; }
+    .display-toggle[aria-pressed="true"] { color: var(--gold); border-color: var(--gold2); }
+    #s-lobby, #s-mode, #s-role, #s-setup { padding: 24px; overflow: auto; }
+    .card, .mode-card, .setup-card { max-width: 100%; border-top-color: var(--gold2); box-shadow: 0 16px 50px #0003; }
+    .card-lbl { display: block; font-size: 12px; letter-spacing: .5px; }
+    .card .btn { font-size: 12px; min-height: 40px; letter-spacing: .5px; }
+    .card .inp { min-width: 0; font-size: 13px; }
+    .logo small { font-size: 10px; letter-spacing: 1.5px; margin-top: 9px; }
+    .divider { font-size: 11px; letter-spacing: .5px; margin: 20px 0 12px; }
+    .demo-link { margin-top: 20px; padding-top: 16px; border: 0; border-top: 1px solid var(--bdr2); width: 100%; background: none; color: var(--text2); font-size: 12px; cursor: pointer; }
+    .demo-link:hover { color: var(--gold); }
+    .mode-desc { font-size: 12px; line-height: 1.8; }
+    .mode-facts { display: flex; justify-content: space-between; gap: 12px; font-size: 10px; color: var(--text); margin: 15px 0; }
+    .rcard { font: inherit; }
+    .rcard .rn { font-size: 13px; }
+    .rcard .rs { font-size: 11px; }
+    .load-caption { font-size: 11px; }
+    .timeout-sub { font-size: 13px; }
+    .toast { max-width: calc(100vw - 24px); font-size: 12px; }
+    .phase-announcement {
+      position: fixed; left: 50%; top: 35%; transform: translate(-50%, -50%);
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      padding: 22px 50px; background: #10151ef0;
+      border-top: 1px solid var(--gold2); border-bottom: 1px solid var(--gold2);
+      pointer-events: none; z-index: 200; opacity: 0;
+    }
+    .phase-announcement span { font-size: 10px; letter-spacing: 2px; color: var(--gold); }
+    .phase-announcement strong { white-space: nowrap; font-size: 26px; font-weight: 600; letter-spacing: 4px; color: var(--text3); }
+    .phase-announcement.play { animation: phase-reveal 1.5s ease both; }
+    @keyframes phase-reveal { 0% { opacity: 0; } 15%, 65% { opacity: 1; } 100% { opacity: 0; } }
+    @keyframes pick-reveal { from { transform: scale(1.08); filter: brightness(1.35); } to { transform: scale(1); filter: brightness(1); } }
+    @keyframes ban-impact { from { transform: scale(1.09); filter: brightness(1.7); } to { transform: scale(1); filter: brightness(1); } }
+    @keyframes slot-breathe { 0%, 100% { box-shadow: inset 0 0 15px #ffffff08; } 50% { box-shadow: inset 0 0 18px #ffffff20; } }
+    /* Broadcast finish. The established panel sizes and centered pool stay intact. */
+    :root {
+      --bg: #070c12; --bg1: #0c131c; --bg2: #111c28; --bg3: #172331; --bg4: #223244;
+      --bdr: #14202d; --bdr2: #29394a;
+      --blue: #36c8f5; --blue-g: #36c8f51c;
+      --red: #ff526c; --red-g: #ff526c1c;
+      --gold: #dce8ee; --gold2: #738995;
+      --text: #8296a9; --text2: #b2c3d1; --text3: #f0f6fa;
+      --display-font: 'Bahnschrift SemiCondensed', 'Bahnschrift', 'Arial Narrow', 'Segoe UI', sans-serif;
+    }
+    #s-draft { isolation: isolate; }
+    .dh {
+      background: linear-gradient(90deg, #112b3d 0%, #0b141e 28%, #0b141e 72%, #341822 100%);
+      border-bottom: 1px solid #344354;
+    }
+    .dh-team { width: 25%; position: relative; padding: 0 18px; gap: 2px; }
+    .dh-team::after { content: ''; position: absolute; bottom: -1px; height: 2px; width: 80%; }
+    .dh-team.blue::after { left: 0; background: linear-gradient(90deg, var(--blue), transparent); }
+    .dh-team.red::after { right: 0; background: linear-gradient(270deg, var(--red), transparent); }
+    .dh-team-name { font-family: var(--display-font); font-size: 22px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; }
+    .dh-team.blue .dh-team-name, .dh-team.red .dh-team-name { color: #edf6ff; }
+    .dh-team-side { font-size: 8px; letter-spacing: 1.7px; }
+    .dh-team.blue .dh-team-side { color: var(--blue); }
+    .dh-team.red .dh-team-side { color: var(--red); }
+    .dh-center { gap: 3px; }
+    .dh-phase { font-family: var(--display-font); font-size: 9px; letter-spacing: 2px; color: #879eb2; }
+    .dh-status { font-family: var(--display-font); font-size: 12px; letter-spacing: 1px; }
+    .timer-wrap { background: #0a1119; border-bottom: 1px solid #1b2b3b; overflow: hidden; }
+    .timer-wrap::after {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background: repeating-linear-gradient(90deg, transparent 0 39px, #b6daf80a 39px 40px);
+    }
+    .timer-num {
+      min-width: 120px; height: 100%; display: grid; place-items: center;
+      background: #0a1119; clip-path: polygon(8% 0,92% 0,100% 100%,0 100%);
+      font-family: var(--display-font); font-size: 30px; font-weight: 700; letter-spacing: 3px; line-height: 1;
+      text-shadow: 0 0 20px #bee9ff30; z-index: 2;
+    }
+    .timer-bar-l.blue, .timer-bar-r.blue { background: linear-gradient(0deg, #36c8f544, #36c8f511); box-shadow: inset 0 -2px var(--blue); }
+    .timer-bar-l.red, .timer-bar-r.red { background: linear-gradient(0deg, #ff526c44, #ff526c11); box-shadow: inset 0 -2px var(--red); }
+    .timer-num.urgent { color: #ff7087; }
+    .champion-library {
+      background: radial-gradient(ellipse at 50% 0, #172b3d88, transparent 65%),
+        linear-gradient(120deg, #36c8f507, transparent 28%, transparent 72%, #ff526c07), #070c12;
+    }
+    .fb { background: #0b131de6; border-bottom-color: #24313e; }
+    .rtab {
+      font-family: var(--display-font); letter-spacing: 1px; font-weight: 600;
+      border-radius: 0; border-color: transparent; color: #91a8ba; background: transparent;
+    }
+    .rtab:hover { color: #f1f8fc; background: #24374b; }
+    .rtab.on, .rtab.all.on { background: #23374b; color: #f0f8fc; border-color: #3a5064; box-shadow: inset 0 -2px var(--blue); }
+    .sb { background: #07101a; border: 1px solid #293e51; border-radius: 0; padding-left: 10px; }
+    .sb::placeholder { color: #748a9f; }
+    .audio-btn { border-radius: 0; border-color: #293e51; background: #111f2c; }
+    .cw { padding-top: 8px; background: repeating-linear-gradient(135deg, #9cc5e402 0 1px, transparent 1px 12px); }
+    .cc { border: 1px solid #314252; border-radius: 0; background: #0e1925; transition: border-color .15s, transform .15s, box-shadow .15s; }
+    .cc img { filter: saturate(.88); transition: filter .18s; }
+    .cc .cn { font-size: 11px; background: #0e1925; color: #c4d3df; padding: 3px 2px 4px; line-height: 1.35; border-top: 1px solid #2a3c4c; }
+    .cc:hover:not(.used):not(.nc) { border-color: #a8c9df; box-shadow: 0 4px 14px #0008; }
+    .cc:hover:not(.used):not(.nc) img, .cc.sel img { filter: saturate(1.1) brightness(1.06); }
+    .cc.sel { box-shadow: 0 0 0 1px var(--active), 0 0 18px color-mix(in srgb, var(--active) 24%, transparent); }
+    .cc.sel .cn { color: #f0f8fd; background: color-mix(in srgb, var(--active) 22%, #0b1420); }
+    .cc.sel::after { top: 0; right: 0; border-radius: 0; color: #07111c; }
+    .cc.used { opacity: .24; }
+    .bans-strip { background: #0c141f; border-top: 1px solid #344557; box-shadow: 0 -6px 24px #0004; }
+    .bans-side { position: relative; z-index: 1; }
+    .bans-lbl { font-family: var(--display-font); font-size: 10px; font-weight: 600; letter-spacing: 4px; color: #a0b2c1; }
+    .bans-side-glow { width: 390px; }
+    .bans-side-glow.blue { background: linear-gradient(90deg, #36c8f51f, transparent); }
+    .bans-side-glow.red { background: linear-gradient(270deg, #ff526c1f, transparent); }
+    .ban-sl { border: 1px solid #304455; border-radius: 0; background: repeating-linear-gradient(135deg, #8ca6ba06 0 1px, transparent 1px 6px), #0a111a; }
+    #br-blue { --slot-color: var(--blue); --slot-rgb: 54,200,245; }
+    #br-red { --slot-color: var(--red); --slot-rgb: 255,82,108; }
+    .ban-sl::after {
+      content: attr(data-label); position: absolute; left: 0; bottom: 0; padding: 2px 5px;
+      font: 600 9px var(--display-font); letter-spacing: .5px;
+      color: #91a6ba; background: #07101be6; z-index: 2; pointer-events: none;
+    }
+    .ban-sl .be { font-size: 19px; color: #34495a; }
+    .ban-sl.act, .ban-sl.ghost { border-color: var(--slot-color); box-shadow: inset 0 2px var(--slot-color); animation: broadcast-pulse 1.8s ease-in-out infinite; }
+    .ban-sl.act::after, .ban-sl.ghost::after { color: #07111c; background: var(--slot-color); }
+    .ban-sl.banned { border-top: 2px solid var(--slot-color); }
+    .ban-sl.banned img { filter: saturate(.22) brightness(.75); }
+    .ban-sl.impact { animation: ban-impact .45s ease-out; }
+    .ban-x { background: #080d1422; }
+    .ban-x::after { height: 2px; background: #ff6177; box-shadow: 0 0 7px #ff526c88; }
+    .ban-sl.impact .ban-x::after { animation: ban-slash .35s ease-out; }
+    .picks-row { border-top-color: #3a4c5e; background: #070d15; }
+    .blue-tp { --slot-color: var(--blue); --slot-rgb: 54,200,245; }
+    .red-tp { --slot-color: var(--red); --slot-rgb: 255,82,108; }
+    .pick-slot-h {
+      background: linear-gradient(155deg, rgba(var(--slot-rgb),.09), transparent 55%), #0b141e;
+      border-right: 1px solid #253440;
+    }
+    .pick-slot-h::before {
+      content: ''; position: absolute; left: 0; right: 0; top: 0; height: 3px;
+      background: var(--slot-color); opacity: .35; z-index: 4; pointer-events: none;
+    }
+    .pick-empty { opacity: 1; flex-direction: column; gap: 13px; }
+    .pick-empty::before { content: ''; width: 24px; height: 24px; border: 1px solid rgba(var(--slot-rgb),.2); transform: rotate(45deg); box-shadow: 6px -6px 0 -1px #0b141e, 6px -6px 0 0 rgba(var(--slot-rgb),.08); }
+    .pick-empty span { font-family: var(--display-font); font-size: 32px; font-weight: 300; color: #344858; letter-spacing: 2px; }
+    .pick-num {
+      top: 10px; left: 8px; padding: 3px 5px;
+      background: #07101c99; color: #94a9b9; font-family: var(--display-font); font-size: 9px; letter-spacing: 1.3px;
+    }
+    .pick-name { bottom: 16px; font-size: 13px; font-weight: 700; text-align: left; padding: 0 10px; text-shadow: 0 2px 10px #000; }
+    .pick-state { position: absolute; left: 10px; bottom: 39px; color: var(--slot-color); font-family: var(--display-font); font-size: 8px; letter-spacing: 1.6px; }
+    .pick-fade { background: linear-gradient(0deg, #050d17 0, #07111bd9 10%, #07111b33 40%, transparent 65%); }
+    .blue-tp .pick-slot-h.filled, .red-tp .pick-slot-h.filled { box-shadow: none; }
+    .pick-slot-h.filled::before { opacity: 1; }
+    .pick-slot-h.filled .pick-num { color: #eefaff; border-left: 2px solid var(--slot-color); }
+    .pick-slot-h.filled .pick-name { border-left: 3px solid var(--slot-color); padding-left: 7px; }
+    .blue-tp .pick-slot-h.active-slot, .red-tp .pick-slot-h.active-slot, .pick-slot-h.ghost { animation: broadcast-pulse 1.8s ease-in-out infinite; }
+    .pick-slot-h.active-slot::before, .pick-slot-h.ghost::before { opacity: 1; }
+    .pick-slot-h.active-slot .pick-empty span { color: var(--slot-color); }
+    .pick-slot-h.active-slot .pick-empty::before { border-color: var(--slot-color); }
+    .pick-slot-h.ghost .pick-fade { background: linear-gradient(0deg, #07111bf5, rgba(var(--slot-rgb),.14) 55%, transparent); animation: none; }
+    .pick-slot-h.ghost .pick-art { opacity: .8; }
+    .pick-slot-h.flash::after { background: linear-gradient(110deg, transparent 20%, #e5f8ff70 48%, transparent 76%); animation: lock-sweep .55s ease-out both; }
+    .pick-slot-h.flash .pick-art { animation: pick-reveal .55s cubic-bezier(.16,1,.3,1); }
+    .picks-mid { background: linear-gradient(180deg, #172636, #0a111b 45%); border-color: #34495b; position: relative; }
+    .picks-mid::before { content: ''; position: absolute; left: 20%; right: 20%; top: 0; height: 2px; background: var(--active); box-shadow: 0 0 18px color-mix(in srgb, var(--active) 35%, transparent); }
+    .action-eyebrow { font-family: var(--display-font); font-size: 10px; font-weight: 600; letter-spacing: 1.6px; }
+    .prev-box { border-radius: 0; border: 1px solid #2d4256; background: #07111d; }
+    .prev-name { color: #f0f8ff; }
+    .prev-empty { font-size: 10px; color: #8ca3b9; }
+    .conf-btn, .ready-btn {
+      border: none; border-radius: 0; min-height: 36px; font-weight: 700; letter-spacing: 1px;
+      clip-path: polygon(0 0,calc(100% - 7px) 0,100% 7px,100% 100%,7px 100%,0 calc(100% - 7px));
+      color: #07111a; background: var(--active); transition: filter .15s, transform .15s;
+    }
+    .ready-btn { background: #d9eaf3; color: #0a1620; }
+    .ready-btn:hover:not(:disabled) { background: #f5fbff; color: #07111a; }
+    .conf-btn:disabled, .ready-btn:disabled { background: #253647; color: #677d90; opacity: 1; }
+    .conf-btn:active:not(:disabled), .ready-btn:active:not(:disabled) { transform: translateY(1px); }
+    .action-hint { font-size: 9px; color: #8ca1b4; }
+    .rs-row { font-family: var(--display-font); font-size: 10px; }
+    .phase-announcement {
+      padding: 20px 60px; border: 0; border-left: 3px solid var(--active);
+      background: linear-gradient(110deg, #102333f5, #09111df5);
+      clip-path: polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,16px 100%,0 calc(100% - 16px));
+      box-shadow: 0 12px 40px #0008;
+    }
+    .phase-announcement span { color: var(--active); font-family: var(--display-font); }
+    .phase-announcement strong { font-family: var(--display-font); font-weight: 600; font-size: 28px; letter-spacing: 5px; }
+    .phase-announcement.play { animation: broadcast-phase 1.5s ease both; }
+    .audio-panel { background: #0c1722f5; border: 1px solid #354d62; border-top: 2px solid var(--blue); border-radius: 0; backdrop-filter: blur(16px); }
+    .audio-row input { accent-color: var(--blue); }
+    .done-bar { background: #0a1420; border-top: 1px solid #3d5265; }
+    #s-lobby, #s-mode, #s-role {
+      background: radial-gradient(ellipse at 20% 25%, #10364d66, transparent 50%), radial-gradient(ellipse at 85% 75%, #431b2c44, transparent 50%), #070c12;
+    }
+    .logo { font-family: var(--display-font); color: #f0f7fc; letter-spacing: 5px; }
+    .logo small { font-family: 'Segoe UI', sans-serif; color: #91aabd; font-weight: 400; letter-spacing: 2px; }
+    .card, .mode-card, .setup-card { background: #0e1925; border-radius: 0; border: 1px solid #2b4054; border-top: 2px solid var(--blue); box-shadow: 0 24px 70px #0005; }
+    .card .btn, .card .inp, .rcard, .mode-btn { border-radius: 0; }
+    .card .btn-gold { color: #08131f; background: #d8e9f3; }
+    .card .btn-blue { color: #07111a; }
+    .card .inp { background: #09111c; }
+    @keyframes broadcast-pulse { 0%,100% { box-shadow: inset 0 0 0 1px rgba(var(--slot-rgb, 54,200,245),.5); } 50% { box-shadow: inset 0 0 0 1px var(--slot-color), inset 0 0 25px color-mix(in srgb, var(--slot-color) 12%, transparent); } }
+    @keyframes lock-sweep { from { transform: translateX(-120%); } to { transform: translateX(120%); } }
+    @keyframes pick-reveal { from { transform: scale(1.09) translateY(4px); filter: brightness(1.2); } to { transform: scale(1) translateY(0); filter: brightness(1); } }
+    @keyframes ban-slash { from { transform: rotate(135deg) scaleX(0); } to { transform: rotate(135deg) scaleX(1); } }
+    @keyframes broadcast-phase { 0% { opacity: 0; transform: translate(-50%, -40%); } 18%,70% { opacity: 1; transform: translate(-50%, -50%); } 100% { opacity: 0; transform: translate(-50%, -56%); } }
+    @media (max-width: 700px) {
+      .dh-team { width: 25%; padding: 0 9px; }
+      .dh-team-name { font-size: 13px; }
+      .dh-team-side { font-size: 8px; }
+      .dh-status { font-size: 10px; }
+      .fb { padding: 6px; }
+      .rtab { font-size: 10px; padding: 5px 7px; }
+      .ban-sl { width: clamp(24px, 6vw, 42px); height: clamp(24px, 6vw, 42px); }
+      .bans-strip { height: 60px; }
+      .picks-row { height: 240px; }
+      .picks-mid { width: 135px; padding: 8px; }
+      .pick-name { font-size: 10px; }
+      .pick-state { left: 6px; font-size: 7px; letter-spacing: 1px; white-space: nowrap; }
+      .pick-num { font-size: 8px; }
+      .role-grid { gap: 6px; width: 100%; max-width: 450px; }
+      .rcard { min-width: 0; padding: 20px 8px; }
+      .rcard .rn { font-size: 11px; letter-spacing: 0; }
+      .audio-panel { top: 132px; }
+    }
+    @media (max-height: 600px) { .picks-row { height: 180px; } .bans-strip { height: 60px; } .ban-sl { width: 44px; height: 44px; } }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+      .phase-announcement { display: none; }
+    }
+    html.reduce-motion *, html.reduce-motion *::before, html.reduce-motion *::after {
+      animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important;
+    }
+    html.reduce-motion .phase-announcement { display: none; }
+  </style>
 </head>
 
 <body>
 
   <div id="s-load" class="scr on">
     <div class="spin"></div>
-    <div class="ld-t">INITIALIZING...</div>
+    <div class="ld-t">LOADING</div>
+    <p class="load-caption">チャンピオンを読み込んでいます</p>
   </div>
 
   <div id="s-setup" class="scr">
@@ -1966,17 +2325,17 @@
   </div>
 
   <div id="s-lobby" class="scr">
-    <div class="logo">DRAFT TOOL <small>League of Legends · Summoner's Rift · 5v5</small></div>
+    <div class="logo">DRAFT TOOL<small>League of Legends · 5v5</small></div>
     <div class="card">
       <div class="card-lbl">新しいドラフトを作成</div>
       <button class="btn btn-gold" onclick="createRoom()">ルームを作成する</button>
-      <div class="divider">または参加</div>
-      <div class="card-lbl">ルームコードを入力</div>
+      <div class="divider">ルームに参加</div>
+      <label class="card-lbl" for="join-inp">ルームコード</label>
       <div class="row-flex">
-        <input class="inp" id="join-inp" type="text" placeholder="XXXXXX" maxlength="8"
-          onkeydown="if(event.key==='Enter')joinInput()">
+        <input class="inp" id="join-inp" type="text" placeholder="XXXXXX" maxlength="6" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter')joinInput()">
         <button class="btn btn-blue" onclick="joinInput()">参加</button>
       </div>
+      <button class="demo-link" onclick="startPractice()">練習モード</button>
     </div>
   </div>
 
@@ -1988,7 +2347,8 @@
       <div class="mode-row">
         <button class="mode-btn on" id="mb-bo1">BO1</button>
       </div>
-      <div class="mode-desc" id="mode-desc">BANを3体×2フェーズ、PICKをフェーズ1→2の順で行うトーナメント標準形式です。</div>
+      <div class="mode-desc" id="mode-desc">各チーム5体をBAN、5体をPICK。<br>前半は3 BAN → 3 PICK、後半は2 BAN → 2 PICKのトーナメント形式です。</div>
+      <div class="mode-facts"><span>5 vs 5</span><span>20 TURNS</span><span>30 SEC / TURN</span></div>
       <button class="btn btn-gold" style="margin-top:16px" onclick="confirmMode()">次へ →</button>
       <button class="btn btn-ghost" style="margin-top:6px;width:100%;padding:8px"
         onclick="show('s-mode',false);show('s-lobby')">← 戻る</button>
@@ -2005,21 +2365,21 @@
     </div>
     <p style="font-size:.7rem;color:var(--text);letter-spacing:2px;text-transform:uppercase">ロールを選択</p>
     <div class="role-grid">
-      <div class="rcard blue" id="rc-blue" onclick="pickRole('blue')">
-        <div class="ri">🔵</div>
+      <button class="rcard blue" id="rc-blue" onclick="pickRole('blue')">
+        <div class="ri">Ⅰ</div>
         <div class="rn">Blue Side</div>
         <div class="rs" id="ra-blue">利用可能</div>
-      </div>
-      <div class="rcard red" id="rc-red" onclick="pickRole('red')">
-        <div class="ri">🔴</div>
+      </button>
+      <button class="rcard red" id="rc-red" onclick="pickRole('red')">
+        <div class="ri">Ⅱ</div>
         <div class="rn">Red Side</div>
         <div class="rs" id="ra-red">利用可能</div>
-      </div>
-      <div class="rcard spec" onclick="pickRole('spectator')">
-        <div class="ri">👁️</div>
+      </button>
+      <button class="rcard spec" onclick="pickRole('spectator')">
+        <div class="ri">◎</div>
         <div class="rn">観戦</div>
         <div class="rs">見るだけ</div>
-      </div>
+      </button>
     </div>
   </div>
 
@@ -2028,16 +2388,16 @@
     <header class="dh">
       <div class="dh-team blue">
         <div class="dh-team-name">Blue Side</div>
-        <div class="dh-team-side">blue side</div>
+        <div class="dh-team-side" id="blue-presence">FIRST PICK · BLUE SIDE</div>
       </div>
       <div class="dh-center">
         <div class="dh-phase" id="dh-phase">—</div>
-        <div class="dh-status" id="dh-status">待機中...</div>
+        <div class="dh-status" id="dh-status" aria-live="polite">待機中...</div>
 
       </div>
       <div class="dh-team red">
         <div class="dh-team-name">Red Side</div>
-        <div class="dh-team-side">red side</div>
+        <div class="dh-team-side" id="red-presence">SECOND PICK · RED SIDE</div>
       </div>
     </header>
 
@@ -2050,21 +2410,24 @@
 
     <!-- チャンピオングリッド (上部) -->
     <div class="upper-area">
-      <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0">
+      <div class="champion-workspace">
+        <div class="champion-library">
         <div class="fb">
-          <button class="rtab all on" id="tab-all" onclick="setF('all')">ALL</button>
-          <button class="rtab" id="tab-top" onclick="setF('top')">⚔️ TOP</button>
-          <button class="rtab" id="tab-jungle" onclick="setF('jungle')">🌿 JG</button>
-          <button class="rtab" id="tab-mid" onclick="setF('mid')">💫 MID</button>
-          <button class="rtab" id="tab-adc" onclick="setF('adc')">🏹 ADC</button>
-          <button class="rtab" id="tab-support" onclick="setF('support')">🛡️ SUP</button>
-          <input class="sb" id="sb" type="text" placeholder="検索..." oninput="applyF()">
-          <button class="audio-btn" onclick="toggleAudioPanel()">🔊</button>
+          <button class="rtab all on" id="tab-all" onclick="setF('all')" aria-pressed="true">ALL</button>
+          <button class="rtab" id="tab-top" onclick="setF('top')" aria-pressed="false">TOP</button>
+          <button class="rtab" id="tab-jungle" onclick="setF('jungle')" aria-pressed="false">JG</button>
+          <button class="rtab" id="tab-mid" onclick="setF('mid')" aria-pressed="false">MID</button>
+          <button class="rtab" id="tab-adc" onclick="setF('adc')" aria-pressed="false">ADC</button>
+          <button class="rtab" id="tab-support" onclick="setF('support')" aria-pressed="false">SUP</button>
+          <input class="sb" id="sb" type="search" placeholder="検索…" aria-label="チャンピオン名を検索" oninput="applyF()">
+          <button class="audio-btn" onclick="toggleAudioPanel()" aria-label="音量設定" aria-expanded="false" title="音量・表示設定">♫</button>
         </div>
         <div class="cw-row">
           <div class="cw">
             <div class="cg" id="cg"></div>
+            <div class="empty-search" id="empty-search" hidden><span>⌕</span><b>チャンピオンが見つかりません</b><p>別の名前で検索するか、フィルターを解除してください。</p><button onclick="clearFilters()">検索条件をリセット</button></div>
           </div>
+        </div>
         </div>
       </div>
 
@@ -2097,15 +2460,18 @@
         <button class="btn-sm btn-next" id="btn-next" onclick="goNew()" style="display:none">次のゲーム →</button>
       </div>
     </div>
+    <div class="phase-announcement" id="phase-announcement" aria-hidden="true"><span id="announcement-eyebrow">PHASE 01</span><strong id="announcement-title">BAN PHASE</strong></div>
 
     <!-- 音量パネル -->
     <div class="audio-panel" id="audio-panel">
-      <div class="audio-panel-title">AUDIO SETTINGS</div>
+      <div class="audio-panel-title">音量・表示設定 <button class="audio-close" onclick="toggleAudioPanel()" aria-label="音量設定を閉じる">×</button></div>
+      <p class="audio-help" aria-live="polite">効果音とBGMの音量を調整できます。</p>
+      <p id="audio-now" class="audio-help" aria-live="polite">BGMはドラフト開始時に再生されます。</p>
 
       <div class="audio-section-lbl">BGM</div>
       <div class="audio-row">
         <span class="audio-lbl">BGM</span>
-        <input type="range" min="0" max="100" value="50" id="vol-ban-bgm"
+        <input type="range" min="0" max="100" value="50" id="vol-ban-bgm" aria-label="BGMの音量"
           oninput="setVol('banBgm',this.value);setVol('pickBgm',this.value)">
         <span class="audio-val" id="vv-ban-bgm">50</span>
         <button class="audio-mute" id="mute-ban-bgm" onclick="toggleMuteBgm()">OFF</button>
@@ -2114,22 +2480,28 @@
       <div class="audio-section-lbl" style="margin-top:10px">SFX</div>
       <div class="audio-row">
         <span class="audio-lbl">BAN 効果音</span>
-        <input type="range" min="0" max="100" value="50" id="vol-ban-sfx" oninput="setVol('banSfx',this.value)">
+        <input type="range" min="0" max="100" value="50" id="vol-ban-sfx" aria-label="BAN効果音の音量" oninput="setVol('banSfx',this.value)">
         <span class="audio-val" id="vv-ban-sfx">50</span>
         <button class="audio-mute" id="mute-ban-sfx" onclick="toggleMute('banSfx')">OFF</button>
       </div>
       <div class="audio-row">
         <span class="audio-lbl">PICK 効果音</span>
-        <input type="range" min="0" max="100" value="50" id="vol-pick-sfx" oninput="setVol('pickSfx',this.value)">
+        <input type="range" min="0" max="100" value="50" id="vol-pick-sfx" aria-label="PICK効果音の音量" oninput="setVol('pickSfx',this.value)">
         <span class="audio-val" id="vv-pick-sfx">50</span>
         <button class="audio-mute" id="mute-pick-sfx" onclick="toggleMute('pickSfx')">OFF</button>
+      </div>
+      <div class="panel-extras">
+        <button class="display-toggle" id="motion-btn" onclick="toggleMotion()" aria-pressed="false">演出を抑える</button>
+        <div class="panel-room"><span>ROOM <b id="draft-room">------</b></span><button class="copy-btn" onclick="copyLink()">招待URLをコピー</button></div>
+        <div id="your-role"></div>
+        <div class="panel-meta"><span id="connection-status" class="connection-status"><span class="status-dot"></span>接続中</span><span id="patch-label">DATA DRAGON</span></div>
       </div>
     </div>
 
     <!-- タイムアップモーダル -->
-    <div class="timeout-ov" id="timeout-ov">
+    <div class="timeout-ov" id="timeout-ov" role="dialog" aria-modal="true" aria-labelledby="timeout-title">
       <div class="timeout-card">
-        <div class="timeout-title">TIME UP</div>
+        <div class="timeout-title" id="timeout-title">TIME UP</div>
         <div class="timeout-sub" id="timeout-sub">時間切れです。</div>
         <div class="timeout-btns">
           <button class="btn-repick" onclick="timeoutRepick()">このターンをやり直す</button>
@@ -2140,7 +2512,7 @@
 
     <script type="module">
       import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-      import {getDatabase, ref, set, get, update, onValue, remove, onDisconnect}
+      import {getDatabase, ref, set, get, update, onValue, remove, onDisconnect, runTransaction}
         from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
 
       const SEQ = [
@@ -2175,7 +2547,7 @@
 
       // ── ドラフト状態 ──────────────────────────────────
       let roomConfig = {mode: 'bo1', draftType: 'tournament'};
-      let winnerSelected = false;
+      let winnerSelected = false, winnerPending = false;
 
       function getSeq() {return SEQ;}
       function getPhlbl() {return PHLBL;}
@@ -2185,12 +2557,71 @@
       let isInitialRender = true;
       let timerInterval = null, timerSec = 0, timerStep = -1;
       let prevActionsLen = -1; // SFX用: 前フレームのアクション数
+      let practiceMode = false, practiceState = {}, lastPhase = null, actionPending = false;
+      let roomSubscription = null, presenceSubscription = null, timerOrigin = null;
+
+      // Practice uses the same renderer and sequence, with no database writes.
+      async function updateRoom(patch) {
+        if (!practiceMode) return update(ref(db, `rooms/${roomId}`), patch);
+        for (const [path, raw] of Object.entries(patch)) {
+          const value = raw && raw['.sv'] === 'timestamp' ? Date.now() : raw;
+          const keys = path.split('/');
+          let target = practiceState;
+          keys.slice(0, -1).forEach(key => {target = target[key] ||= {};});
+          if (value === null) delete target[keys.at(-1)];
+          else target[keys.at(-1)] = value;
+        }
+        applyRoomState(structuredClone(practiceState));
+      }
 
       const $ = id => document.getElementById(id);
       const show = (id, on = true) => {const el = $(id); if (!el) return; if (id === 's-draft') {el.classList.toggle('on', on); return;} el.classList.toggle('on', on);};
       const toast = msg => {document.querySelectorAll('.toast').forEach(t => t.remove()); const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 3300);};
-      const genId = () => Array.from({length: 6}, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 33)]).join('');
-      window.copyLink = () => {const url = `${location.origin}${location.pathname}?room=${roomId}`; navigator.clipboard.writeText(url).then(() => toast('URLをコピーしました')).catch(() => toast(url));};
+      const genId = () => {const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; return Array.from(crypto.getRandomValues(new Uint32Array(6)), n => chars[n % chars.length]).join('');};
+      window.copyLink = async () => {
+        if (practiceMode) {toast('練習モードです。対戦相手を招待する場合はロビーからルームを作成してください。'); return;}
+        const url = new URL(location.href); url.search = ''; url.searchParams.set('room', roomId);
+        try {await navigator.clipboard.writeText(url.href); toast('招待URLをコピーしました');} catch {toast(url.href);}
+      };
+      window.toggleMotion = () => {
+        const reduced = document.documentElement.classList.toggle('reduce-motion');
+        $('motion-btn').setAttribute('aria-pressed', String(reduced));
+        try {localStorage.setItem('lol-reduced-motion', String(reduced));} catch {}
+      };
+      try {if (localStorage.getItem('lol-reduced-motion') === 'true') {document.documentElement.classList.add('reduce-motion'); $('motion-btn').setAttribute('aria-pressed', 'true');}} catch {}
+      document.addEventListener('keydown', event => {
+        const typing = /INPUT|TEXTAREA|SELECT/.test(event.target.tagName) || event.target.isContentEditable;
+        if (event.key === '/' && !typing && $('s-draft').classList.contains('on')) {event.preventDefault(); $('sb').focus();}
+        if (event.key === 'Escape') {
+          if ($('audio-panel').classList.contains('on')) window.toggleAudioPanel();
+          if (event.target === $('sb')) {$('sb').value = ''; window.applyF(); $('sb').blur();}
+        }
+      });
+      window.startPractice = () => {
+        if (!Object.keys(champMap).length) {toast('チャンピオンデータを読み込めませんでした。ページを再読み込みしてください。'); return;}
+        practiceMode = true; roomId = 'PRACTICE'; myRole = 'blue';
+        practiceState = {step:0, ready:{blue:false,red:false}, roles:{blue:true,red:true}, started:false, actions:{}};
+        history.replaceState({}, '', '?practice=1');
+        ['s-lobby','s-mode','s-role'].forEach(id => show(id, false));
+        initDraft();
+      };
+
+      function renderPresentation(data, done) {
+        const cur = getSeq()[curStep], phase = done ? 4 : !started ? -1 : curStep < 6 ? 0 : curStep < 12 ? 1 : curStep < 16 ? 2 : 3;
+        $('s-draft').dataset.team = started && !done ? cur?.t || '' : '';
+        $('your-role').textContent = practiceMode ? '練習モード · 両チームを操作' : myRole === 'spectator' ? '観戦中' : myRole === 'blue' ? 'Blue Side' : 'Red Side';
+        ['blue','red'].forEach(team => {
+          $(team + '-presence').textContent = done ? 'DRAFT COMPLETE' : readyState[team] ? 'READY' : data.roles?.[team] ? '参加中' : '参加待ち';
+        });
+        if (phase !== lastPhase) {
+          if (phase >= 0 && !isInitialRender) {
+            $('announcement-eyebrow').textContent = phase === 4 ? '20 / 20' : 'PHASE ' + (phase < 2 ? '01' : '02');
+            $('announcement-title').textContent = phase === 4 ? 'DRAFT COMPLETE' : phase % 2 ? 'PICK PHASE' : 'BAN PHASE';
+            const el = $('phase-announcement'); el.classList.remove('play'); void el.offsetWidth; el.classList.add('play');
+          }
+          lastPhase = phase;
+        }
+      }
       window.copySnapshot = async () => {
         const btn = document.getElementById('copy-btn');
         btn.textContent = '⏳ 生成中...'; btn.disabled = true;
@@ -2290,20 +2721,17 @@
             num.className = 'timer-num zero';
             barL.style.width = '50%'; barR.style.width = '50%';
             // 1秒後にタイムアップ判定
-            const savedStep = timerStep;
+            const savedStep = timerStep, savedOrigin = timerOrigin;
             const cur = SEQ[curStep];
             if (cur && myRole === cur.t) {
               setTimeout(async () => {
-                if (curStep !== savedStep || lastState?.done) return;
+                if (curStep !== savedStep || timerOrigin !== savedOrigin || !started || lastState?.done) return;
                 // 0表示を消してタイムアップへ
                 if (selected) {
                   // 選択中なら強制確定
                   const used = new Set(Object.values(actions).filter(Boolean));
                   if (!used.has(selected)) {
-                    const ns = curStep + 1;
-                    const seqLen2 = getSeq().length;
-                    await update(ref(db, `rooms/${roomId}`), {[`actions/${curStep}`]: selected, step: ns, done: ns >= seqLen2, hover: null, timerStart: null});
-                    selected = null;
+                    await window.confirmAction();
                   }
                 } else {
                   showTimeoutModal();
@@ -2341,7 +2769,7 @@
         $('timeout-ov').classList.remove('on');
         selected = null;
         timerStep = -1; // タイマーを強制リセット → startTimer が再発火
-        if (db && roomId) update(ref(db, `rooms/${roomId}`), {hover: null, timerStart: null});
+        if (db && roomId) updateRoom({hover: null, timerStart: {'.sv':'timestamp'}}).catch(() => toast('タイマーを再開できませんでした。接続を確認してください。'));
       };
 
       window.timeoutRestart = async () => {
@@ -2350,11 +2778,12 @@
         stopBgm();
         if (db && roomId) {
           // 同じルームで全員をリセット（新ルームに飛ばさず準備画面へ）
-          await update(ref(db, `rooms/${roomId}`), {
+          await updateRoom({
             step: 0, actions: null, started: false, done: false,
             hover: null, bgmIndex: null, timerStart: null,
             'ready/blue': false, 'ready/red': false,
             winnerSelected: false, winner: null,
+            draftId: crypto.randomUUID(), legacyStats: false, legacyWinner: null,
           });
         }
       };
@@ -2365,7 +2794,8 @@
         roomId = genId();
         history.pushState({}, '', `?room=${roomId}`);
         try {
-          await update(ref(db, `rooms/${roomId}`), {
+          await updateRoom({
+            draftId: crypto.randomUUID(),
             'config/mode': 'bo1',
             'config/draftType': 'tournament',
             createdAt: Date.now(),
@@ -2631,44 +3061,115 @@
         totalDrafts = snap.val()?.totalDrafts || 0;
       }
 
-      // ドラフト完了時に BAN/PICK を記録
-      async function savePickBanStats(actionsObj, seq) {
-        if (!db) return;
-        for (const [i, s] of seq.entries()) {
-          const cid = actionsObj[i];
-          if (!cid) continue;
-          const key = s.a === 'ban' ? 'bans' : 'picks';
-          const r = ref(db, `stats/champs/${cid}/${key}`);
-          const cur = (await get(r)).val() || 0;
-          await set(r, cur + 1);
+
+      // STATS_CORE_START: shared pure reducers for Firebase transactions and regression tests.
+      function identifyDraft(room, candidateId) {
+        if (!room) return null;
+        if (room.draftId) return;
+        return {...room, draftId: candidateId, legacyStats: !!room.done,
+          legacyWinner: room.done && room.winnerSelected ? room.winner || null : null};
+      }
+      function statsRequest(data, currentRoomId, winner = null) {
+        if (!data?.done || !data.draftId) throw new Error('完了したドラフトのIDがありません');
+        if (winner !== null && !['blue', 'red'].includes(winner)) throw new Error('勝者が不正です');
+        const sequence = getSeq();
+        const entries = sequence.map((step, index) => ({...step, champion: data.actions?.[index]}));
+        if (entries.some(entry => typeof entry.champion !== 'string' || !/^[A-Za-z0-9]+$/.test(entry.champion)) ||
+            new Set(entries.map(entry => entry.champion)).size !== sequence.length) {
+          throw new Error('BAN/PICKがすべて確定していません');
         }
-        const metaRef = ref(db, 'stats/meta/totalDrafts');
-        const curTotal = (await get(metaRef)).val() || 0;
-        await set(metaRef, curTotal + 1);
-        totalDrafts = curTotal + 1;
+        return {draftId: data.draftId, roomId: currentRoomId, entries, winner,
+          legacy: !!data.legacyStats, legacyWinner: data.legacyWinner || null};
+      }
+      const statsCount = value => Number.isSafeInteger(value) && value >= 0 ? value : 0;
+      function applyDraftStats(current, request) {
+        const previous = current?.drafts?.[request.draftId];
+        if (previous && (!request.winner || previous.winner)) return;
+        const stats = structuredClone(current || {});
+        stats.champs ||= {};
+        stats.meta ||= {};
+        stats.drafts ||= {};
+        const add = (champion, key) => {
+          const championStats = stats.champs[champion] ||= {};
+          championStats[key] = statsCount(championStats[key]) + 1;
+        };
+        let record = stats.drafts[request.draftId];
+        if (!record) {
+          record = {roomId: request.roomId, entries: request.entries, counted: true};
+          // Old completed rooms have no reliable receipt. Preserve their existing totals.
+          if (request.legacy) {
+            record.legacy = true;
+            if (['blue', 'red'].includes(request.legacyWinner)) record.winner = request.legacyWinner;
+          } else {
+            for (const entry of request.entries) add(entry.champion, entry.a === 'ban' ? 'bans' : 'picks');
+            stats.meta.totalDrafts = statsCount(stats.meta.totalDrafts) + 1;
+          }
+          stats.drafts[request.draftId] = record;
+        }
+        if (request.winner && !record.winner) {
+          for (const entry of record.entries) {
+            if (entry.a === 'pick') add(entry.champion, entry.t === request.winner ? 'wins' : 'losses');
+          }
+          record.winner = request.winner;
+        }
+        return stats;
+      }
+      function calculateWinRate(wins, losses) {
+        const played = statsCount(wins) + statsCount(losses);
+        return played ? Math.round(statsCount(wins) / played * 100) : null;
+      }
+      // STATS_CORE_END
+
+      async function ensureDraftIdentity(currentRoomId) {
+        const candidateId = crypto.randomUUID();
+        const result = await runTransaction(ref(db, 'rooms/' + currentRoomId),
+          room => identifyDraft(room, candidateId), {applyLocally: false});
+        if (!result.snapshot.val()?.draftId) throw new Error('ルームを読み込めませんでした');
       }
 
-
-      // 勝者確定時に wins/losses を記録
-      async function saveWinStats(winTeam, actionsObj, seq) {
-        if (!db) return;
-        for (const [i, s] of seq.entries()) {
-          if (s.a !== 'pick') continue;
-          const cid = actionsObj[i];
-          if (!cid) continue;
-          const won = s.t === winTeam;
-          const key = won ? 'wins' : 'losses';
-          const r = ref(db, `stats/champs/${cid}/${key}`);
-          const cur = (await get(r)).val() || 0;
-          await set(r, cur + 1);
+      // Receipt and counters commit together: retries never leave partially counted matches.
+      async function saveDraftStats(data, winner = null) {
+        if (practiceMode) return null;
+        if (!db) throw new Error('Firebaseに接続されていません');
+        const request = statsRequest(data, roomId, winner);
+        const result = await runTransaction(ref(db, 'stats'),
+          current => applyDraftStats(current, request), {applyLocally: false});
+        const stats = result.snapshot.val();
+        const record = stats?.drafts?.[request.draftId];
+        if (!record) throw new Error('統計の保存を確認できませんでした');
+        totalDrafts = statsCount(stats.meta?.totalDrafts);
+        // Recover after a disconnect between the stats commit and the room winner update.
+        if (record.winner) {
+          await runTransaction(ref(db, 'rooms/' + request.roomId), room => {
+            if (!room) return null;
+            if (room.draftId !== request.draftId || !room.done ||
+                (room.winnerSelected && room.winner === record.winner)) return;
+            return {...room, winner: record.winner, winnerSelected: true};
+          }, {applyLocally: false});
         }
+        return record;
+      }
+
+      const completedStats = new Set(), pendingStats = new Map();
+      function queueDraftStats(data, force = false) {
+        if (practiceMode || myRole === 'spectator' || !data?.done || !data.draftId) return;
+        const id = data.draftId;
+        if (pendingStats.has(id) || (!force && completedStats.has(id))) return;
+        const saving = saveDraftStats(data).then(() => completedStats.add(id)).catch(error => {
+          completedStats.delete(id);
+          console.error('統計の保存に失敗:', error);
+          toast('統計を保存できませんでした。接続を確認して再読み込みしてください。');
+        }).finally(() => pendingStats.delete(id));
+        pendingStats.set(id, saving);
       }
 
       // 統計を取得して表示
       async function showPickStats(cid, slotEl) {
+        if (practiceMode) return;
         if (!db || !champMap[cid]) return;
-        const snap = await get(ref(db, `stats/champs/${cid}`));
+        const [snap, meta] = await Promise.all([get(ref(db, `stats/champs/${cid}`)), get(ref(db, 'stats/meta'))]);
         const d = snap.val() || {};
+        totalDrafts = statsCount(meta.val()?.totalDrafts);
         const picks = d.picks || 0;
         const bans = d.bans || 0;
         const wins = d.wins || 0;
@@ -2677,7 +3178,7 @@
 
         const pickRate = Math.round(picks / total * 100);
         const banRate = Math.round(bans / total * 100);
-        const winRate = picks > 0 ? Math.round(wins / picks * 100) : 0;
+        const winRate = calculateWinRate(wins, losses);
 
         // 既存オーバーレイを削除
         slotEl.querySelectorAll('.pick-stats-overlay').forEach(el => el.remove());
@@ -2698,7 +3199,7 @@
       </div>
       <div class="pso-sep"></div>
       <div class="pso-stat">
-        <div class="pso-val">${winRate}%</div>
+        <div class="pso-val" title="${winRate === null ? '勝敗が入力された試合はありません' : `${wins}勝 ${losses}敗`}">${winRate === null ? '—' : `${winRate}%`}</div>
         <div class="pso-lbl">WIN</div>
       </div>
     </div>
@@ -2722,16 +3223,28 @@
         if (nextBtn) nextBtn.style.display = winnerSelected ? '' : 'none';
       }
 
+
       window.selectWinner = async (team) => {
-        if (winnerSelected || !lastState?.done) return;
-
-        // 勝敗統計を保存
-        saveWinStats(team, actions, getSeq()).catch(console.error);
-
-        await update(ref(db, `rooms/${roomId}`), {
-          winner: team,
-          winnerSelected: true
-        });
+        if (myRole === 'spectator' || !['blue','red'].includes(team)) return;
+        if (winnerSelected || winnerPending || !lastState?.done) return;
+        const data = structuredClone(lastState);
+        winnerPending = true;
+        _origDoneBarCheck();
+        try {
+          if (practiceMode) await updateRoom({winner: team, winnerSelected: true});
+          else {
+            const record = await saveDraftStats(data, team);
+            completedStats.add(data.draftId);
+            if (record.winner !== team) toast('先に登録された勝敗を反映しました。');
+          }
+        } catch (error) {
+          completedStats.delete(data.draftId);
+          console.error('勝敗の保存に失敗:', error);
+          toast('勝敗を保存できませんでした。接続を確認してもう一度お試しください。');
+        } finally {
+          winnerPending = false;
+          _origDoneBarCheck();
+        }
       };
 
       // 勝敗選択後だけ「次のゲーム」を表示
@@ -2741,29 +3254,34 @@
         const lbl = db_el.querySelector('.done-bar-label');
         const nextBtn = $('btn-next');
         const wa = $('winner-area');
+        wa?.querySelectorAll('button').forEach(button => {button.disabled = winnerPending;});
 
-        if (nextBtn) nextBtn.style.display = winnerSelected ? '' : 'none';
-        if (wa) wa.style.display = winnerSelected ? 'none' : 'flex';
+        if (nextBtn) nextBtn.style.display = winnerSelected && myRole !== 'spectator' ? '' : 'none';
+        if (wa) wa.style.display = winnerSelected || myRole === 'spectator' ? 'none' : 'flex';
 
         if (lbl) {
           if (winnerSelected && lastState?.winner) {
             lbl.textContent = lastState.winner === 'blue' ? '🔵 BLUE WIN' : '🔴 RED WIN';
           } else {
-            lbl.textContent = 'SELECT WINNER';
+            lbl.textContent = myRole === 'spectator' ? 'DRAFT COMPLETE' : '試合終了後に勝者を選択';
           }
         }
       };
 
       window.goNew = async () => {
+        if (myRole === 'spectator') return;
         // 勝敗未選択なら次のゲームへ進ませない
         if (!winnerSelected) {
           toast('先に勝敗を選択してください');
           return;
         }
 
+        if (practiceMode) {await window.timeoutRestart(); return;}
+        try {await saveDraftStats(structuredClone(lastState));}
+        catch {toast('統計の保存を確認できませんでした。接続を確認してもう一度お試しください。'); return;}
         const nextId = genId();
         if (db && roomId) {
-          try {await update(ref(db, `rooms/${roomId}`), {nextRoom: nextId});} catch (e) {console.error(e); return;}
+          try {await updateRoom({nextRoom: nextId});} catch (e) {console.error(e); return;}
           setTimeout(async () => {
             try {await remove(ref(db, `rooms/${roomId}`));} catch { }
           }, 2000);
@@ -2794,8 +3312,10 @@
           } catch { }
         }
         show('s-load', false);
+        $('patch-label').textContent = `PATCH ${ddVer}`;
+        if (!Object.keys(champMap).length) toast('チャンピオンデータの取得に失敗しました。通信環境を確認して再読み込みしてください。');
         // Firebase config 埋め込み済み
-        startApp({
+        startApp(loadConfig() || {
           apiKey: "AIzaSyChsCU2MgmHrniBQ8ERrk0jxXco6oR-oLU",
           authDomain: "draft-test-f5065.firebaseapp.com",
           databaseURL: "https://draft-test-f5065-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -2808,12 +3328,13 @@
         try {const app = initializeApp(cfg); db = getDatabase(app);}
         catch (e) {toast('Firebase エラー: ' + e.message); show('s-setup'); return;}
         const p = new URLSearchParams(location.search), urlRoom = p.get('room');
+        if (p.has('practice')) {window.startPractice(); return;}
         if (urlRoom) {roomId = urlRoom.toUpperCase(); showRoleScreen();}
         else show('s-lobby');
       }
 
       window.createRoom = () => {show('s-lobby', false); show('s-mode');};
-      window.joinInput = () => {const c = $('join-inp').value.trim().toUpperCase(); if (!c) {toast('ルームコードを入力してください'); return;} roomId = c; history.pushState({}, '', `?room=${roomId}`); show('s-lobby', false); showRoleScreen();};
+      window.joinInput = () => {const c = $('join-inp').value.trim().toUpperCase(); if (!/^[A-Z0-9]{6}$/.test(c)) {toast('6文字のルームコードを入力してください'); return;} roomId = c; history.pushState({}, '', `?room=${roomId}`); show('s-lobby', false); showRoleScreen().catch(() => toast('ルームに接続できませんでした。通信環境を確認してください。'));};
 
       async function showRoleScreen() {
         $('role-code').textContent = roomId; show('s-role');
@@ -2848,15 +3369,35 @@
         myRole = role; show('s-role', false); initDraft();
       };
 
-      function initDraft() {
+      async function initDraft() {
         show('s-draft', true);
+        $('draft-room').textContent = roomId;
+        roomSubscription?.();
+        presenceSubscription?.();
         if (myRole === 'blue') $('bans-glow-blue').classList.add('on');
         else if (myRole === 'red') $('bans-glow-red').classList.add('on');
-        loadStats().catch(console.error); // 統計読み込み
+        if (!practiceMode) loadStats().catch(console.error); // 統計読み込み
 
         buildPickSlots(); buildBanSlots(); buildChampGrid();
-        onValue(ref(db, `rooms/${roomId}`), snap => {
-          const data = snap.val() || {};
+        if (practiceMode) {
+          $('connection-status').innerHTML = '<span class="status-dot"></span>LOCAL PRACTICE';
+          applyRoomState(structuredClone(practiceState));
+        } else {
+          if (myRole !== 'spectator') {
+            try {await ensureDraftIdentity(roomId);}
+            catch (error) {console.error(error); toast('ルームの保存設定に失敗しました。接続を確認して再読み込みしてください。'); return;}
+          }
+          presenceSubscription = onValue(ref(db, '.info/connected'), snap => {
+            const online = snap.val() === true;
+            $('connection-status').innerHTML = `<span class="status-dot"></span>${online ? 'LIVE SYNC' : '再接続中'}`;
+            $('connection-status').classList.toggle('offline', !online);
+            if (online) queueDraftStats(lastState, true);
+          });
+          roomSubscription = onValue(ref(db, `rooms/${roomId}`), snap => applyRoomState(snap.val() || {}), () => toast('ルームの読み込みに失敗しました。接続を確認してください。'));
+        }
+      }
+
+      function applyRoomState(data) {
           // 次のルームへの移動指示があればリダイレクト（全員共通）
           if (data.nextRoom && data.nextRoom !== roomId) {
             location.href = `?room=${data.nextRoom}`;
@@ -2867,17 +3408,17 @@
             const db_el = $('done-bar'); if (db_el) db_el.classList.remove('on');
             const to = $('timeout-ov'); if (to) to.classList.remove('on');
             selected = null; prevActionsLen = -1; winnerSelected = false;
+            timerStep = -1; timerOrigin = null;
           }
           curStep = data.step || 0; actions = data.actions || {}; started = data.started || false; readyState = data.ready || {blue: false, red: false};
+          if (practiceMode) myRole = getSeq()[curStep]?.t || 'blue';
           if (data.config) roomConfig = {mode: 'bo1', draftType: 'tournament'};
           winnerSelected = data.winnerSelected || false;
-          // BGMインデックス同期: bgmIndexが来たらまだ再生していなければ再生
-          if (typeof data.bgmIndex === 'number') {
-            if (bgmNodes.length === 0 && actx && !MUTED.banBgm) {
-              _launchBgmByIndex(data.bgmIndex);
-            }
-          } else if (!data.started && bgmNodes.length > 0) {
-            stopBgm(); // ゲームリセット時にBGM停止
+          // Song identity is independent of each client's loading speed.
+          if (!data.started) {
+            stopBgm();
+            const previousSounds = [...activeSfx]; activeSfx.clear();
+            previousSounds.forEach(media => {media.pause(); media.remove();});
           }
           const cur = getSeq()[curStep];
           if (cur && myRole === cur.t) {
@@ -2885,9 +3426,11 @@
           } else {
             selected = data.hover || null;
           }
-          lastState = data; render(data);
+          lastState = data;
+          syncEmbeddedBgm();
+          render(data);
           isInitialRender = false;
-        });
+          queueDraftStats(data);
       }
 
       function buildPickSlots() {
@@ -2895,26 +3438,28 @@
           const el = $(`tp-${tm}`); el.innerHTML = '';
           for (let i = 0; i < 5; i++) {
             const d = document.createElement('div');
-            d.className = 'pick-slot-h'; d.id = `ps-${tm}-${i}`;
-            d.innerHTML = `<div class="pick-art" id="pa-${tm}-${i}"></div><div class="pick-fade"></div><div class="pick-empty" id="pe-${tm}-${i}"><svg width="32" height="32" viewBox="0 0 40 40" fill="none" stroke="white" stroke-width="2"><circle cx="20" cy="14" r="9"/><path d="M4 38c0-10 32-10 32 0"/></svg></div><div class="pick-name" id="pn-${tm}-${i}"></div><div class="pick-num">P${i + 1}</div>`;
+            d.className = 'pick-slot-h'; d.id = `ps-${tm}-${i}`; d.setAttribute('aria-label', `${tm === 'blue' ? 'Blue' : 'Red'} PICK ${i + 1}`);
+            d.innerHTML = `<div class="pick-art" id="pa-${tm}-${i}"></div><div class="pick-fade"></div><div class="pick-empty" id="pe-${tm}-${i}"><span aria-hidden="true">${String(i + 1).padStart(2, '0')}</span></div><div class="pick-state" id="pst-${tm}-${i}"></div><div class="pick-name" id="pn-${tm}-${i}"></div><div class="pick-num">PICK ${String(i + 1).padStart(2, '0')}</div>`;
             el.appendChild(d);
           }
         });
       }
 
       function buildBanSlots() {
-        ['blue', 'red'].forEach(tm => {const el = $(`br-${tm}`); el.innerHTML = ''; for (let i = 0; i < 5; i++) el.innerHTML += `<div class="ban-sl" id="bs-${tm}-${i}"><span class="be">⊘</span><div class="ban-x"></div></div>`;});
+        ['blue', 'red'].forEach(tm => {const el = $(`br-${tm}`); el.innerHTML = ''; for (let i = 0; i < 5; i++) el.innerHTML += `<div class="ban-sl" id="bs-${tm}-${i}" data-label="B${i + 1}" aria-label="${tm === 'blue' ? 'Blue' : 'Red'} BAN ${i + 1}"><span class="be">⊘</span><div class="ban-x"></div></div>`;});
       }
 
       function buildChampGrid() {
         const grid = $('cg'); grid.innerHTML = '';
         Object.entries(champMap).sort((a, b) => a[1].name.localeCompare(b[1].name, 'ja')).forEach(([id, c]) => {
-          const d = document.createElement('div');
+          const d = document.createElement('button');
+          d.type = 'button'; d.title = `${c.name} / ${id}`; d.setAttribute('aria-label', c.name);
           d.className = 'cc'; d.id = `cc-${id}`; d.dataset.id = id; d.dataset.nm = c.name.toLowerCase(); d.dataset.roles = (ROLES[id] || []).join(' ');
           d.innerHTML = `<img src="${c.img}" alt="${c.name}" loading="lazy"><div class="cn">${c.name}</div>`;
           d.addEventListener('click', () => clickChamp(id));
           grid.appendChild(d);
         });
+        window.applyF();
       }
 
       function render(data) {
@@ -2933,7 +3478,7 @@
         let bBan = 0, rBan = 0, bPick = 0, rPick = 0;
         const CUR_SEQ = getSeq();
         CUR_SEQ.forEach((s, i) => {
-          const cid = actions[i], isAct = (i === curStep && !done);
+          const cid = actions[i], isAct = (started && i === curStep && !done);
           if (s.a === 'ban') {
             if (s.t === 'blue') {updBan('blue', bBan, cid, isAct); bBan++;}
             else {updBan('red', rBan, cid, isAct); rBan++;}
@@ -2945,6 +3490,9 @@
 
         document.querySelectorAll('.cc').forEach(el => {
           const id = el.dataset.id;
+          const current = getSeq()[curStep];
+          el.disabled = used.has(id) || !started || done || myRole !== current?.t;
+          el.setAttribute('aria-pressed', String(id === selected));
           el.classList.remove('used', 'nc', 'sel');
           if (used.has(id)) {el.classList.add('used'); return;}
           if (!started || done) {el.classList.add('nc'); return;}
@@ -2953,38 +3501,42 @@
         });
 
         const ph = $('dh-phase'), st = $('dh-status');
-        if (!started) {ph.textContent = '—'; st.textContent = 'WAITING FOR DRAFTER'; st.className = 'dh-status'; $('bans-lbl').textContent = 'BANS';}
+        if (!started) {ph.textContent = 'GET READY'; st.textContent = '両チームの準備を待っています'; st.className = 'dh-status'; $('bans-lbl').textContent = 'BANS';}
         else if (done) {
           ph.textContent = 'COMPLETED'; st.textContent = 'DRAFT COMPLETE'; st.className = 'dh-status'; $('bans-lbl').textContent = 'BANS';
           if (!$('done-bar').classList.contains('on')) {
             if (actx) playFinalSfx();
-            // BAN/PICK統計を保存（最初にdoneになった人だけ書き込む）
-            if (myRole === 'blue' || myRole === 'red') {
-              savePickBanStats(actions, getSeq()).catch(console.error);
-            }
+
           }
           $('done-bar').classList.add('on');
         }
         else {
           const cur = getSeq()[curStep];
           ph.textContent = getPhlbl()[curStep];
-          st.textContent = `${cur.t === 'blue' ? '🔵 Blue Side' : '🔴 Red Side'}  ${cur.a === 'ban' ? 'BAN中' : 'PICK中'}`;
+          st.textContent = `${cur.t === 'blue' ? 'BLUE SIDE' : 'RED SIDE'} · ${cur.a === 'ban' ? 'BAN' : 'PICK'}`;
           st.className = `dh-status ${cur.t === 'blue' ? 'bt' : 'rt'}`;
-          $('bans-lbl').textContent = cur.a === 'ban' ? '— BANNING —' : 'BANS';
+          $('bans-lbl').textContent = cur.a === 'ban' ? 'BANNING' : 'BANS';
         }
         renderAC(done);
+        renderPresentation(data, done);
         // タイマー制御（全員共通）
         if (!started || done) {
           stopTimer();
+          timerStep = -1; timerOrigin = null;
+          $('timer-num').textContent = done ? '✓' : '30';
+          $('timer-num').className = 'timer-num';
+          $('timer-bar-l').style.width = '0%'; $('timer-bar-r').style.width = '0%';
         } else {
           const cur = getSeq()[curStep];
           const ts = data.timerStart || null;
-          if (cur && timerStep !== curStep) {
+          if (cur && (timerStep !== curStep || timerOrigin !== ts)) {
             if (ts) {
+              timerOrigin = ts;
+              $('timeout-ov').classList.remove('on');
               startTimer(curStep, cur.t, ts);
             } else if (myRole === cur.t) {
               // 自分のターンかつtimerStartがなければ今すぐ書き込む
-              update(ref(db, `rooms/${roomId}`), {timerStart: {'.sv': 'timestamp'}});
+              updateRoom({timerStart: {'.sv': 'timestamp'}});
             }
           }
         }
@@ -2994,11 +3546,13 @@
 
       function updBan(tm, i, cid, isActive) {
         const el = $(`bs-${tm}-${i}`); if (!el) return;
+        const justLocked = cid && !el.classList.contains('banned') && !isInitialRender;
         const ghostId = (isActive && !cid && selected) ? selected : null;
         const displayId = cid || ghostId;
         const isGhost = !cid && !!ghostId;
         let cls = `ban-sl${isActive && !isGhost ? ' act' : ''}${isGhost ? ' ghost' : ''}${cid ? ' banned' : ''}`;
         el.className = cls;
+        if (justLocked) {el.classList.add('impact'); setTimeout(() => el.classList.remove('impact'), 500);}
         if (displayId && champMap[displayId]) el.innerHTML = `<img src="${champMap[displayId].img}" title="${champMap[displayId].name}" style="${isGhost ? 'opacity:.75' : ''}"><div class="ban-x"></div>`;
         else el.innerHTML = `<span class="be">&#x2296;</span><div class="ban-x"></div>`;
       }
@@ -3027,9 +3581,10 @@
           setTimeout(() => sl.classList.remove('flash'), 600);
 
           // 統計オーバーレイ表示
-          setTimeout(() => showPickStats(cid, sl), 350);
+          setTimeout(() => showPickStats(cid, sl).catch(error => console.error('統計の表示に失敗:', error)), 350);
         }
         sl.className = cls;
+        $(`pst-${tm}-${i}`).textContent = cid ? 'LOCKED' : isGhost ? 'PREVIEW' : isActive ? 'SELECTING' : '';
 
         if (displayId && champMap[displayId]) {
           pa.style.backgroundImage = `url('${champMap[displayId].load}')`;
@@ -3052,12 +3607,12 @@
         if (!started && !done) {
           const bOk = readyState.blue, rOk = readyState.red, mine = myRole === 'blue' ? bOk : myRole === 'red' ? rOk : true;
           ac.innerHTML = myRole === 'spectator'
-            ? `<div class="wait-msg">観戦中<br>両チームが Ready で開始</div>`
-            : `<div class="rw"><div class="rs-row"><span class="${bOk ? 'ok' : ''}">🔵 ${bOk ? '✓ Ready' : '待機'}</span><span class="${rOk ? 'ok' : ''}">🔴 ${rOk ? '✓ Ready' : '待機'}</span></div><button class="ready-btn" ${mine ? 'disabled' : ''} onclick="sendReady()">${mine ? 'Ready ✓' : 'Ready'}</button></div>`;
+            ? `<div class="wait-msg"><div class="wait-orbit"></div>観戦中<br>両チームの準備を待っています</div>`
+            : `<span class="action-eyebrow">${practiceMode ? 'PRACTICE MODE' : 'READY CHECK'}</span><div class="rw"><div class="rs-row"><span class="${bOk ? 'ok' : ''}">B ${bOk ? '✓ READY' : '待機中'}</span><span class="${rOk ? 'ok' : ''}">R ${rOk ? '✓ READY' : '待機中'}</span></div><button class="ready-btn" ${mine ? 'disabled' : ''} onclick="sendReady()">${mine ? '準備完了 ✓' : practiceMode ? '練習を開始 →' : '準備完了 →'}</button></div><p class="action-hint">${practiceMode ? '両サイドを自由に操作できます' : '両チームの準備完了で開始'}</p>`;
           return;
         }
         if (done) {
-          ac.innerHTML = '';
+          ac.innerHTML = '<span class="complete-mark">✓</span><span class="complete-caption">DRAFT COMPLETE</span>';
           const wa = $('winner-area');
           if (wa) {
             wa.style.display = winnerSelected ? 'none' : 'flex';
@@ -3070,24 +3625,38 @@
 
         const cur = SEQ[curStep];
         if (myRole === 'spectator' || myRole !== cur.t) {
-          ac.innerHTML = `<div class="wait-msg">${cur.t === 'blue' ? '🔵 Blue' : '🔴 Red'}<br>${cur.a === 'ban' ? 'BAN' : 'PICK'} を待っています...</div>`;
+          ac.innerHTML = `<div class="wait-msg"><div class="wait-orbit"></div>${cur.t === 'blue' ? 'BLUE SIDE' : 'RED SIDE'}<br>${cur.a === 'ban' ? 'BAN' : 'PICK'} を待っています</div>`;
           return;
         }
         const used = new Set(Object.values(actions).filter(Boolean));
         const champ = (selected && !used.has(selected)) ? champMap[selected] : null;
         ac.innerHTML = `
+    <span class="action-eyebrow">YOUR TURN · ${cur.a.toUpperCase()}</span>
     <div class="prev-box">
       ${champ ? `<img src="${champ.img}" alt="${champ.name}"><span class="prev-name">${champ.name}</span>` : `<span class="prev-empty">${cur.a === 'ban' ? 'BAN' : 'PICK'}するチャンプを選択</span>`}
     </div>
     <button class="conf-btn" ${champ ? '' : 'disabled'} onclick="confirmAction()">
-      ${cur.a === 'ban' ? 'BAN 確定' : 'PICK 確定'}
-    </button>`;
+      ${cur.a === 'ban' ? 'BAN を確定' : 'PICK を確定'} <span aria-hidden="true">→</span>
+    </button><p class="action-hint">${champ ? 'このチャンピオンで確定します' : '一覧からチャンピオンを選択'}</p>`;
       }
 
 
       function playFinalSfx() {
+        stopBgm();
+        if (MUTED.pickSfx) return;
+        if (playEmbeddedSfx('finalSfx', 'pickSfx', playFinalSfx)) return;
         const ctx = ensureActx();
-        if (!customBuffers.finalSfx) return;
+        if (!customBuffers.finalSfx) {
+          stopBgm();
+          if (MUTED.pickSfx) return;
+          [261.63,329.63,392,523.25].forEach((frequency, i) => {
+            const oscillator = ctx.createOscillator(), gain = ctx.createGain(), t = ctx.currentTime + i * .13;
+            oscillator.type = 'sine'; oscillator.frequency.value = frequency;
+            gain.gain.setValueAtTime(0, t); gain.gain.linearRampToValueAtTime(VOLS.pickSfx * .12, t + .025); gain.gain.exponentialRampToValueAtTime(.0001, t + 1.3);
+            oscillator.connect(gain); gain.connect(ctx.destination); oscillator.start(t); oscillator.stop(t + 1.4);
+          });
+          return;
+        }
         const fadeMs = 5000; // BGMを5秒かけてフェードアウト
 
         // 現在のBGMをフェードアウト（停止はfadeMs後）
@@ -3114,32 +3683,38 @@
         g.gain.setValueAtTime(0, ctx.currentTime);
         g.gain.linearRampToValueAtTime(VOLS.banBgm, ctx.currentTime + 0.8);
         src.connect(g); g.connect(ctx.destination);
-        src.start();
+        if (!MUTED.pickSfx) src.start();
         bgmGainNode = g; bgmNodes = [src, g];
       }
 
       function clickChamp(id) {
-        if (!started || curStep >= 20) return;
+        if (!started || curStep >= 20 || lastState?.done || actionPending) return;
         const cur = getSeq()[curStep]; if (!cur || myRole !== cur.t) return;
         const used = new Set(Object.values(actions).filter(Boolean)); if (used.has(id)) return;
         selected = id;
         document.querySelectorAll('.cc').forEach(el => el.classList.toggle('sel', el.dataset.id === id));
         // Firebase に hover を書き込む → 相手にも見える
-        update(ref(db, `rooms/${roomId}`), {hover: id});
+        if (!practiceMode) render(lastState || {});
+        updateRoom({hover: id}).catch(() => toast('選択を同期できませんでした。接続を確認してください。'));
       }
 
       window.confirmAction = async () => {
-        if (!selected || curStep >= 20) return;
+        if (!selected || !started || curStep >= 20 || lastState?.done || actionPending) return;
         const cur = getSeq()[curStep]; if (!cur || myRole !== cur.t) return;
         const used = new Set(Object.values(actions).filter(Boolean));
         if (used.has(selected)) {toast('そのチャンピオンはすでに使われています'); return;}
         const ns = curStep + 1;
         const seqLen = getSeq().length;
-        await update(ref(db, `rooms/${roomId}`), {[`actions/${curStep}`]: selected, step: ns, done: ns >= seqLen, hover: null, timerStart: null});
-        selected = null;
+        actionPending = true;
+        const confirmed = selected; selected = null;
+        try {await updateRoom({[`actions/${curStep}`]: confirmed, step: ns, done: ns >= seqLen, hover: null, timerStart: {'.sv':'timestamp'}});}
+        catch {selected = confirmed; toast('確定できませんでした。接続を確認してもう一度お試しください。');}
+        finally {actionPending = false;}
       };
 
       window.sendReady = async () => {
+        ensureEmbedded();
+        if (practiceMode) {await updateRoom({ready:{blue:true,red:true}, started:true, timerStart:Date.now(), bgmIndex:Math.floor(Math.random() * EMBEDDED.bgmList.length)}); return;}
         if (!myRole || myRole === 'spectator') return;
         const updates = {[`ready/${myRole}`]: true};
         const snap = await get(ref(db, `rooms/${roomId}/ready`));
@@ -3148,16 +3723,19 @@
           updates.started = true;
           updates.timerStart = Date.now();
           // 最後にReadyを押した人がbgmIndexを1度だけ決定
-          const pool = customBuffers.bgmList;
-          if (pool && pool.length > 0) {
-            updates.bgmIndex = Math.floor(Math.random() * pool.length);
-          }
+          updates.bgmIndex = Math.floor(Math.random() * EMBEDDED.bgmList.length);
         }
-        await update(ref(db, `rooms/${roomId}`), updates);
+        await updateRoom(updates);
       };
 
-      window.setF = role => {roleFilter = (roleFilter === role && role !== 'all') ? 'all' : role; document.querySelectorAll('.rtab').forEach(el => el.classList.remove('on')); $(`tab-${roleFilter}`).classList.add('on'); applyF();};
-      window.applyF = () => {const q = $('sb').value.toLowerCase(); document.querySelectorAll('.cc').forEach(el => {const nm = el.dataset.nm.includes(q), ro = roleFilter === 'all' || (el.dataset.roles || '').includes(roleFilter); el.style.display = (nm && ro) ? '' : 'none';});};
+      window.setF = role => {roleFilter = (roleFilter === role && role !== 'all') ? 'all' : role; document.querySelectorAll('.rtab').forEach(el => {const active = el.id === `tab-${roleFilter}`; el.classList.toggle('on', active); el.setAttribute('aria-pressed', String(active));}); window.applyF();};
+      const normalizeSearch = text => text.normalize('NFKC').toLowerCase().replace(/[\u3041-\u3096]/g, c => String.fromCharCode(c.charCodeAt(0) + 0x60)).replace(/[\s.'’・-]/g, '');
+      window.applyF = () => {
+        const q = normalizeSearch($('sb').value.trim()); let count = 0;
+        document.querySelectorAll('.cc').forEach(el => {const name = normalizeSearch(el.dataset.nm + ' ' + el.dataset.id).includes(q), role = roleFilter === 'all' || (el.dataset.roles || '').split(' ').includes(roleFilter); const visible = name && role; el.hidden = !visible; if (visible) count++;});
+        $('empty-search').hidden = count > 0;
+      };
+      window.clearFilters = () => {$('sb').value = ''; roleFilter = 'all'; window.setF('all');};
 
 
       // ══════════════════════════════════════════════════
@@ -3184,20 +3762,24 @@
       function startBgm(phase) {bgmPhase = phase;} // 互換用空関数
 
       function _launchBgmByIndex(idx) {
-        const ctx = ensureActx();
-        bgmPhase = 'bgm'; // スライダー制御のためフラグをセット
-        const vol = VOLS.banBgm;
-        const pool = customBuffers.bgmList;
-        if (!pool || !pool[idx]) return;
-        const src = ctx.createBufferSource();
-        src.buffer = pool[idx];
-        src.loop = true;
-        const g = ctx.createGain();
-        g.gain.setValueAtTime(0, ctx.currentTime);
-        g.gain.linearRampToValueAtTime(vol, ctx.currentTime + 1.2);
-        src.connect(g); g.connect(ctx.destination);
-        src.start();
-        bgmGainNode = g; bgmNodes = [src, g];
+        const media = embeddedBgm[idx];
+        if (!media || media.error || bgmMedia === media) return;
+        stopBgm();
+        bgmMedia = media; bgmPhase = 'bgm';
+        media.loop = true;
+        fadeMedia(media, 0, 0);
+        media.currentTime = 0;
+        media.play().then(() => {
+          if (bgmMedia !== media) return;
+          fadeMedia(media, MUTED.banBgm ? 0 : mediaVolume('banBgm'), 1200);
+          $('audio-now').textContent = `再生中：${BGM_NAMES[idx]}`;
+        }).catch(error => {
+          if (bgmMedia !== media) return;
+          bgmMedia = null; bgmPhase = null;
+          $('audio-now').textContent = error.name === 'NotAllowedError'
+            ? '音楽を開始するには、画面内をクリックしてください。'
+            : 'BGMを再生できませんでした。音源を確認してください。';
+        });
       }
 
       function _launchBgm(phase) {
@@ -3308,6 +3890,11 @@
       }
 
       function stopBgm() {
+        if (bgmMedia) {
+          const oldMedia = bgmMedia; bgmMedia = null;
+          fadeMedia(oldMedia, 0, 800, () => {oldMedia.pause(); oldMedia.currentTime = 0;});
+          $('audio-now').textContent = 'BGMはドラフト開始時に再生されます。';
+        }
         bgmPhase = null;
         if (bgmScheduler) {clearTimeout(bgmScheduler); bgmScheduler = null;}
         if (bgmGainNode) {
@@ -3325,6 +3912,8 @@
       }
 
       function updateBgmVol() {
+        if (bgmMedia) fadeMedia(bgmMedia, MUTED.banBgm ? 0 : mediaVolume('banBgm'), 200);
+        else if (!MUTED.banBgm) syncEmbeddedBgm();
         if (!bgmGainNode) return;
         const vol = MUTED.banBgm ? 0 : VOLS.banBgm;
         try {bgmGainNode.gain.linearRampToValueAtTime(vol, actx.currentTime + 0.3);} catch { }
@@ -3333,7 +3922,8 @@
       // ── SFX ──────────────────────────────────────────
 
       function playTickSfx() {
-        if (!actx) return;
+        if (!actx || MUTED.banSfx || VOLS.banSfx <= 0) return;
+        if (playEmbeddedSfx('timerTick', 'banSfx', playTickSfx)) return;
         if (customBuffers.timerTick) {
           const src = actx.createBufferSource(); src.buffer = customBuffers.timerTick;
           const g = actx.createGain(); g.gain.value = VOLS.banSfx; // banSfxの音量に合わせる
@@ -3343,12 +3933,13 @@
         const t = actx.currentTime;
         const o = actx.createOscillator(); o.type = 'sine'; o.frequency.value = 880;
         const g = actx.createGain();
-        g.gain.setValueAtTime(0.18, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.08);
+        g.gain.setValueAtTime(VOLS.banSfx * .25, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.08);
         o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t + 0.1);
       }
 
       function playBanSfx() {
         if (MUTED.banSfx) return;
+        if (playEmbeddedSfx('banSfx', 'banSfx', playBanSfx)) return;
         const ctx = ensureActx();
         const vol = VOLS.banSfx;
         // カスタム音源があればそれを使う
@@ -3403,6 +3994,7 @@
 
       function playPickSfx() {
         if (MUTED.pickSfx) return;
+        if (playEmbeddedSfx('pickSfx', 'pickSfx', playPickSfx)) return;
         const ctx = ensureActx();
         const vol = VOLS.pickSfx;
         // カスタム音源があればそれを使う
@@ -3445,7 +4037,9 @@
       // ── UI コントロール ───────────────────────────────
       window.toggleAudioPanel = () => {
         ensureActx(); // ユーザー操作でAudioContext解禁
-        $('audio-panel').classList.toggle('on');
+        const open = $('audio-panel').classList.toggle('on');
+        document.querySelector('.audio-btn').setAttribute('aria-expanded', String(open));
+        if (open) $('vol-ban-bgm').focus(); else document.querySelector('.audio-btn').focus();
       };
 
 
@@ -3453,43 +4047,46 @@
         const next = !MUTED.banBgm;
         MUTED.banBgm = MUTED.pickBgm = next;
         const btn = $('mute-ban-bgm');
-        btn.textContent = next ? 'ON' : 'OFF';
+        btn.textContent = next ? '消音中' : '消音';
+        btn.setAttribute('aria-pressed', String(next));
         btn.classList.toggle('muted', next);
         updateBgmVol();
         saveAudioPrefs();
       };
 
       window.setVol = (key, val) => {
-        VOLS[key] = Math.min(1.0, (val / 100) * (MAX_VOLS[key] || 1));
-        $(`vv-${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`).textContent = val;
+        VOLS[key] = (Math.max(0, Math.min(100, Number(val))) / 100) * (MAX_VOLS[key] || 1);
+        const label = $(`vv-${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`); if (label) label.textContent = val;
         if (key === 'banBgm' || key === 'pickBgm') updateBgmVol();
+        updateEmbeddedSfxVol();
         saveAudioPrefs();
       };
 
       window.toggleMute = (key) => {
         MUTED[key] = !MUTED[key];
         const btn = $(`mute-${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`);
-        btn.textContent = MUTED[key] ? 'ON' : 'OFF';
+        btn.textContent = MUTED[key] ? '消音中' : '消音';
+        btn.setAttribute('aria-pressed', String(MUTED[key]));
         btn.classList.toggle('muted', MUTED[key]);
         if (key === 'banBgm' || key === 'pickBgm') updateBgmVol();
+        updateEmbeddedSfxVol();
         saveAudioPrefs();
       };
 
       function saveAudioPrefs() {
-        localStorage.setItem('lol-audio', JSON.stringify({VOLS, MUTED}));
+        try {localStorage.setItem('lol-audio', JSON.stringify({VOLS, MUTED}));} catch {}
       }
       function loadAudioPrefs() {
         try {
           const p = JSON.parse(localStorage.getItem('lol-audio') || 'null');
-          if (!p) return;
-          Object.assign(VOLS, p.VOLS); Object.assign(MUTED, p.MUTED);
+          if (p) {Object.assign(VOLS, p.VOLS); Object.assign(MUTED, p.MUTED);}
           // スライダー・ボタンに反映
           const map = {banBgm: 'ban-bgm', pickBgm: 'pick-bgm', banSfx: 'ban-sfx', pickSfx: 'pick-sfx'};
           Object.entries(map).forEach(([k, id]) => {
             const sl = $(`vol-${id}`); if (sl) sl.value = Math.round((VOLS[k] / (MAX_VOLS[k] || 1)) * 100);
             const vv = $(`vv-${id}`); if (vv) vv.textContent = Math.round((VOLS[k] / (MAX_VOLS[k] || 1)) * 100);
             const bt = $(`mute-${id}`);
-            if (bt) {bt.textContent = MUTED[k] ? 'ON' : 'OFF'; bt.classList.toggle('muted', MUTED[k]);}
+            if (bt) {bt.textContent = MUTED[k] ? '消音中' : '消音'; bt.setAttribute('aria-pressed', String(MUTED[k])); bt.classList.toggle('muted', MUTED[k]);}
           });
         } catch { }
       }
@@ -3535,49 +4132,104 @@
         ],
       };
 
-      // 起動時に埋め込み音源を全キーでデコードしてcustomBuffersに格納
-      async function loadEmbedded() {
-        const ctx = ensureActx();
+      const BGM_NAMES = ['Prelude Trilogy', 'Life Is C', 'Goblin', 'My Rules', 'Crossroads', 'Bitten'];
+      const embeddedSfx = {}, embeddedBgm = [], failedSfx = new Set(), activeSfx = new Set();
+      const mediaFades = new WeakMap();
+      let bgmMedia = null, embeddedInitialized = false;
 
-        // bgmList を並列デコードして customBuffers.bgmList に格納
-        customBuffers.bgmList = [];
-        const bgmDecoded = await Promise.all(EMBEDDED.bgmList.map(async (uri, i) => {
-          try {
-            const ab = await (await fetch(uri)).arrayBuffer();
-            const buf = await ctx.decodeAudioData(ab);
-            console.log(`BGM[${i}] decoded OK`);
-            return buf;
-          } catch (e) {console.warn(`BGM[${i}] decode failed`, e); return null;}
-        }));
-        customBuffers.bgmList = bgmDecoded.filter(Boolean);
-        console.log(`BGM pool: ${customBuffers.bgmList.length} tracks ready`);
+      function mediaVolume(key) {
+        return Math.max(0, Math.min(1, VOLS[key] / MAX_VOLS[key]));
+      }
 
-        // SFX などその他の音源
-        for (const [key, uri] of Object.entries(EMBEDDED)) {
-          if (key === 'bgmList') continue;
-          try {
-            const resp = await fetch(uri);
-            const ab = await resp.arrayBuffer();
-            customBuffers[key] = await ctx.decodeAudioData(ab);
-            const id = key.replace(/([A-Z])/g, '-$1').toLowerCase();
-            const el = document.getElementById('fn-' + id);
-            if (el) el.textContent = key === 'banSfx' ? 'ban-intro' : key === 'pickSfx' ? 'pick-double' : key === 'timerTick' ? 'timer-tick' : key === 'finalSfx' ? 'finalization' : 'Crossroads';
-          } catch (e) {console.warn('embedded audio load failed:', key, e);}
-        }
+      function fadeMedia(media, target, milliseconds, complete) {
+        cancelAnimationFrame(mediaFades.get(media));
+        const from = media.volume, start = performance.now();
+        const tick = now => {
+          const fraction = milliseconds ? Math.min(1, (now - start) / milliseconds) : 1;
+          media.volume = from + (target - from) * fraction;
+          if (fraction < 1) mediaFades.set(media, requestAnimationFrame(tick));
+          else {mediaFades.delete(media); complete?.();}
+        };
+        tick(start);
+      }
+
+      function syncEmbeddedBgm() {
+        if (!embeddedInitialized || !lastState?.started || lastState?.done || MUTED.banBgm) return;
+        const index = lastState.bgmIndex;
+        if (Number.isInteger(index) && index >= 0 && index < embeddedBgm.length) _launchBgmByIndex(index);
+      }
+
+      function updateEmbeddedSfxVol() {
+        activeSfx.forEach(media => {
+          const key = media.dataset.volumeKey;
+          media.volume = MUTED[key] ? 0 : mediaVolume(key);
+        });
+      }
+
+      function playEmbeddedSfx(key, volumeKey, fallback) {
+        const base = embeddedSfx[key];
+        if (!base || base.error || failedSfx.has(key) || customBuffers[key]) return false;
+        const media = base.cloneNode();
+        media.dataset.volumeKey = volumeKey;
+        media.dataset.playback = 'effect';
+        media.volume = MUTED[volumeKey] ? 0 : mediaVolume(volumeKey);
+        media.preload = 'auto';
+        document.body.appendChild(media);
+        activeSfx.add(media);
+        const cleanup = () => {activeSfx.delete(media); media.remove();};
+        media.addEventListener('ended', cleanup, {once:true});
+        media.play().catch(() => {
+          if (!activeSfx.has(media)) return;
+          failedSfx.add(key); cleanup();
+          // Fall back once to the synthesized effect if an individual file fails.
+          fallback();
+        });
+        return true;
+      }
+
+      // Native media elements support relative audio files on both HTTP and file URLs.
+      // Music stays compressed instead of decoding six full tracks into memory.
+      function loadEmbedded() {
+        const metadataReady = new Set(), failed = new Set();
+        const updateStatus = () => {
+          const total = embeddedBgm.length + Object.keys(embeddedSfx).length;
+          const text = failed.size
+            ? '一部の音源を読み込めません。利用できる音源と内蔵効果音で動作します。'
+            : metadataReady.size === total
+              ? 'BGM 6曲・効果音4種類を読み込みました。'
+              : 'BGM・効果音を準備しています…';
+          document.querySelector('.audio-help').textContent = text;
+        };
+        const createMedia = (uri, key, music) => {
+          const media = document.createElement('audio');
+          media.hidden = true;
+          media.preload = music ? 'metadata' : 'auto';
+          media.src = uri;
+          media.dataset.audio = key;
+          media.addEventListener('loadedmetadata', () => {metadataReady.add(key); updateStatus();}, {once:true});
+          media.addEventListener('error', () => {failed.add(key); updateStatus();}, {once:true});
+          document.body.appendChild(media);
+          return media;
+        };
+        ['banSfx','pickSfx','timerTick','finalSfx'].forEach(key => {
+          embeddedSfx[key] = createMedia(EMBEDDED[key], key, false);
+        });
+        EMBEDDED.bgmList.forEach((uri, index) => embeddedBgm.push(createMedia(uri, 'bgm-' + index, true)));
+        updateStatus();
+      }
+
+      function ensureEmbedded() {
+        ensureActx();
+        if (!embeddedInitialized) {embeddedInitialized = true; loadEmbedded();}
+        syncEmbeddedBgm();
       }
 
       loadAudioPrefs();
-      // loadEmbedded はユーザー操作後に実行（AudioContext制限回避）
-      let _embeddedLoaded = false;
-      async function ensureEmbedded() {
-        if (_embeddedLoaded) return;
-        _embeddedLoaded = true;
-        await loadEmbedded();
-      }
-      document.addEventListener('click', () => ensureEmbedded(), {once: true});
+      document.addEventListener('click', ensureEmbedded, {capture:true});
       init();
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  </div>
 </body>
 
 </html>
